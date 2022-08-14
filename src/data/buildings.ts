@@ -2,7 +2,7 @@ import { Building } from "../types/building";
 
 export const BUILDINGS: Building[] = [
   { label: "Grain Farm", multiplier: 1 },
-  { label: "Animal Ranch", multiplier: 1 },
+  { label: "Animal Ranch", multiplier: 0.5 },
   { label: "Waterworks", multiplier: 1 },
   { label: "Mill", multiplier: 1 },
   { label: "Bakery", multiplier: 1 },

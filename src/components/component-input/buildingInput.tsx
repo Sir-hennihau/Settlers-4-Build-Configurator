@@ -3,11 +3,13 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  SelectChangeEvent,
   Stack,
   TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
+import { BUILDINGS } from "../../data/buildings";
 import { selectConfig, setAmount } from "../../store/config-store/configSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
@@ -17,7 +19,13 @@ export const BuildingInput = ({}: BuildingInputProps) => {
   const { amount } = useAppSelector(selectConfig);
   const dispatch = useAppDispatch();
 
-  const onInputChange = () => {};
+  const [selectedBuilding, setSelectedBuilding] = useState(BUILDINGS[0]);
+
+  const onInputChange = (event: SelectChangeEvent) => {
+    const value = JSON.parse(event.target.value);
+
+    setSelectedBuilding(value);
+  };
 
   const onAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newAmount = Number(event.target.value);
@@ -31,8 +39,16 @@ export const BuildingInput = ({}: BuildingInputProps) => {
       <Stack sx={{ flexDirection: "row" }}>
         <FormControl fullWidth>
           <InputLabel>Building</InputLabel>
-          <Select value={1} label="Building" onChange={onInputChange}>
-            <MenuItem value={1}>Grain Farm</MenuItem>
+          <Select
+            value={JSON.stringify(selectedBuilding)}
+            label="Building"
+            onChange={onInputChange}
+          >
+            {BUILDINGS.map((building) => (
+              <MenuItem key={building.label} value={JSON.stringify(building)}>
+                {building.label}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
