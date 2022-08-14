@@ -1,5 +1,6 @@
 import { Grid } from "@mui/material";
 import { Box } from "@mui/system";
+import { getPreviewString } from "../../../helpers/getPreviewString";
 import { selectConfig } from "../../../store/config-store/configSlice";
 import { useAppSelector } from "../../../store/hooks";
 import { Building } from "../../../types/building";
@@ -15,8 +16,9 @@ export const OutputItem = ({ building }: OutputItemProps) => {
 
   // --- RENDER ---
 
-  const buildingAmountString =
-    Math.round(building.multiplier * soldiersPerMinute * 100) / 100;
+  const buildingAmountString = getPreviewString(
+    building.multiplier * soldiersPerMinute
+  );
 
   return (
     <>

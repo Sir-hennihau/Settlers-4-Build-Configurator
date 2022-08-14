@@ -1,6 +1,7 @@
 import { Container, Typography } from "@mui/material";
 import { BuildingOutput } from "./components/building-output/buildingOutput";
-import { BuildingInput } from "./components/component-input/buildingInput";
+import { BuildingInput } from "./components/building-input/buildingInput";
+import { SoldiersPerMinuteInfo } from "./components/solders-per-minute-info/soldiersPerMinuteInfo";
 
 function App() {
   return (
@@ -12,6 +13,8 @@ function App() {
       <BuildingInput />
 
       <BuildingOutput />
+
+      <SoldiersPerMinuteInfo />
     </Container>
   );
 }

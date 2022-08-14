@@ -10,16 +10,11 @@ import {
 import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
 import { BUILDINGS } from "../../data/buildings";
-import {
-  selectConfig,
-  setSoldiersPerMinute,
-} from "../../store/config-store/configSlice";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
+import { useAppDispatch } from "../../store/hooks";
 import { Building } from "../../types/building";
 
-interface BuildingInputProps {}
-
-export const BuildingInput = ({}: BuildingInputProps) => {
+export const BuildingInput = () => {
   // --- STATE ---
 
   const dispatch = useAppDispatch();

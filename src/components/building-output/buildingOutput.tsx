@@ -1,6 +1,7 @@
-import { Grid } from "@mui/material";
+import { Divider, Grid } from "@mui/material";
 import React from "react";
 import { BUILDINGS } from "../../data/buildings";
+import { SoldiersPerMinuteInfo } from "../solders-per-minute-info/soldiersPerMinuteInfo";
 import { OutputItem } from "./components/outputItem";
 
 interface BuildingOutputProps {}
