@@ -1,12 +1,8 @@
-import { Divider, Grid } from "@mui/material";
-import React from "react";
+import { Grid } from "@mui/material";
 import { BUILDINGS } from "../../data/buildings";
-import { SoldiersPerMinuteInfo } from "../solders-per-minute-info/soldiersPerMinuteInfo";
 import { OutputItem } from "./components/outputItem";
 
-interface BuildingOutputProps {}
-
-export const BuildingOutput = ({}: BuildingOutputProps) => {
+export const BuildingOutput = () => {
   return (
     <Grid container spacing={2} sx={{ marginTop: 1 }}>
       {BUILDINGS.map((building) => (

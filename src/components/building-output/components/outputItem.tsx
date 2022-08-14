@@ -1,5 +1,4 @@
 import { Grid } from "@mui/material";
-import { Box } from "@mui/system";
 import { getPreviewString } from "../../../helpers/getPreviewString";
 import { selectConfig } from "../../../store/config-store/configSlice";
 import { useAppSelector } from "../../../store/hooks";

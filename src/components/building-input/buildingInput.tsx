@@ -32,7 +32,7 @@ export const BuildingInput = () => {
     const newSoldiersPerMinute =
       buildingAmount / parsedSelectedBuilding.multiplier;
     dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
-  }, [selectedBuilding, buildingAmount]);
+  }, [selectedBuilding, buildingAmount, dispatch]);
 
   // --- CALLBACKS ---
 
