@@ -2,24 +2,24 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState, AppThunk } from "../../store/store";
 
 export interface ConfigState {
-  amount: number;
+  soldiersPerMinute: number;
 }
 
 const initialState: ConfigState = {
-  amount: 1,
+  soldiersPerMinute: 1,
 };
 
 export const configSlice = createSlice({
   name: "config",
   initialState,
   reducers: {
-    setAmount: (state, action: PayloadAction<number>) => {
-      state.amount = action.payload;
+    setSoldiersPerMinute: (state, action: PayloadAction<number>) => {
+      state.soldiersPerMinute = action.payload;
     },
   },
 });
 
-export const { setAmount } = configSlice.actions;
+export const { setSoldiersPerMinute } = configSlice.actions;
 
 export const selectConfig = (state: RootState) => state.config;
 

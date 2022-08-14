@@ -9,15 +9,22 @@ interface OutputItemProps {
 }
 
 export const OutputItem = ({ building }: OutputItemProps) => {
-  const { amount } = useAppSelector(selectConfig);
+  // --- STATE ---
+
+  const { soldiersPerMinute } = useAppSelector(selectConfig);
+
+  // --- RENDER ---
+
+  const buildingAmountString =
+    Math.round(building.multiplier * soldiersPerMinute * 100) / 100;
 
   return (
     <>
       <Grid item xs={8}>
-        {building.label}{" "}
+        {building.label}
       </Grid>
       <Grid item xs={4}>
-        {building.multiplier * amount}
+        {buildingAmountString}
       </Grid>
     </>
   );

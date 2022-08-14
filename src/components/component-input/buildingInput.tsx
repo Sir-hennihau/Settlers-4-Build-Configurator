@@ -8,31 +8,51 @@ import {
   TextField,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { BUILDINGS } from "../../data/buildings";
-import { selectConfig, setAmount } from "../../store/config-store/configSlice";
+import {
+  selectConfig,
+  setSoldiersPerMinute,
+} from "../../store/config-store/configSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { Building } from "../../types/building";
 
 interface BuildingInputProps {}
 
 export const BuildingInput = ({}: BuildingInputProps) => {
-  const { amount } = useAppSelector(selectConfig);
+  // --- STATE ---
+
   const dispatch = useAppDispatch();
 
+  const [buildingAmount, setBuildingAmount] = useState(1);
   const [selectedBuilding, setSelectedBuilding] = useState(
     JSON.stringify(BUILDINGS[0])
   );
+
+  // --- EFFECTS ---
+
+  useEffect(() => {
+    const parsedSelectedBuilding = JSON.parse(selectedBuilding) as Building;
+
+    const newSoldiersPerMinute =
+      buildingAmount / parsedSelectedBuilding.multiplier;
+    dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
+  }, [selectedBuilding, buildingAmount]);
+
+  // --- CALLBACKS ---
 
   const onInputChange = (event: SelectChangeEvent) => {
     setSelectedBuilding(event.target.value);
   };
 
-  const onAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const newAmount = Number(event.target.value);
-    if (!Number.isInteger(newAmount)) return;
+  const onBuildingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const newBuildingAmount = Number(event.target.value);
+    if (!Number.isInteger(newBuildingAmount)) return;
 
-    dispatch(setAmount(newAmount));
+    setBuildingAmount(newBuildingAmount);
   };
+
+  // --- RENDER ---
 
   return (
     <Container>
@@ -55,10 +75,10 @@ export const BuildingInput = ({}: BuildingInputProps) => {
         <TextField
           id="outlined-basic"
           label="Amount"
-          onChange={onAmountChange}
+          onChange={onBuildingAmountChange}
           sx={{ marginLeft: 2 }}
           variant="outlined"
-          value={amount}
+          value={buildingAmount}
         />
       </Stack>
     </Container>
