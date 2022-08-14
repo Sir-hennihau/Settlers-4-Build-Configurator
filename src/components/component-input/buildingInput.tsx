@@ -19,12 +19,12 @@ export const BuildingInput = ({}: BuildingInputProps) => {
   const { amount } = useAppSelector(selectConfig);
   const dispatch = useAppDispatch();
 
-  const [selectedBuilding, setSelectedBuilding] = useState(BUILDINGS[0]);
+  const [selectedBuilding, setSelectedBuilding] = useState(
+    JSON.stringify(BUILDINGS[0])
+  );
 
   const onInputChange = (event: SelectChangeEvent) => {
-    const value = JSON.parse(event.target.value);
-
-    setSelectedBuilding(value);
+    setSelectedBuilding(event.target.value);
   };
 
   const onAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +40,7 @@ export const BuildingInput = ({}: BuildingInputProps) => {
         <FormControl fullWidth>
           <InputLabel>Building</InputLabel>
           <Select
-            value={JSON.stringify(selectedBuilding)}
+            value={selectedBuilding}
             label="Building"
             onChange={onInputChange}
           >
