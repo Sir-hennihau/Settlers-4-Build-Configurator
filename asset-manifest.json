@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Settlers-4-Build-Configurator/static/css/main.e6c13ad2.css",
+    "main.js": "/Settlers-4-Build-Configurator/static/js/main.3f3b0885.js",
+    "static/js/787.87adf228.chunk.js": "/Settlers-4-Build-Configurator/static/js/787.87adf228.chunk.js",
+    "index.html": "/Settlers-4-Build-Configurator/index.html",
+    "main.e6c13ad2.css.map": "/Settlers-4-Build-Configurator/static/css/main.e6c13ad2.css.map",
+    "main.3f3b0885.js.map": "/Settlers-4-Build-Configurator/static/js/main.3f3b0885.js.map",
+    "787.87adf228.chunk.js.map": "/Settlers-4-Build-Configurator/static/js/787.87adf228.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.3f3b0885.js"
+  ]
+}
