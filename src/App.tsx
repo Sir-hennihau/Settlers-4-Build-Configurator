@@ -1,4 +1,5 @@
 import { Container, Typography } from "@mui/material";
+import { BuildingOutput } from "./components/building-output/buildingOutput";
 import { BuildingInput } from "./components/component-input/buildingInput";
 
 function App() {
@@ -9,6 +10,8 @@ function App() {
       </Typography>
 
       <BuildingInput />
+
+      <BuildingOutput />
     </Container>
   );
 }
