@@ -1,12 +1,12 @@
 import { Building } from "../types/building";
 
 export const BUILDINGS: Building[] = [
-  { label: "Grain Farm", multiplier: 0.311 },
-  { label: "Animal Ranch", multiplier: 0.066 },
-  { label: "Waterworks", multiplier: 0.093 },
-  { label: "Mill", multiplier: 0.089 },
-  { label: "Bakery", multiplier: 0.231 },
-  { label: "Butcher", multiplier: 0.021 },
+  { label: "Grain Farm", multiplier: 0.5 },
+  { label: "Animal Ranch", multiplier: 0.117 },
+  { label: "Waterworks", multiplier: 0.15 },
+  { label: "Mill", multiplier: 0.118 },
+  { label: "Bakery", multiplier: 0.308 },
+  { label: "Butcher", multiplier: 0.056 },
   // { label: "Fisher", multiplier: 1 },
   { label: "Coal Mine", multiplier: 0.738 },
   { label: "Iron Mine", multiplier: 0.34 },
