@@ -3,7 +3,7 @@ import { useAppSelector } from "../../store/hooks";
 import { selectBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
 import { OutputItem } from "./components/outputItem";
 
-// Define building display names
+/** Mapping from building requirement keys to their display names */
 const BUILDING_DISPLAY_NAMES: { [key: string]: string } = {
   grainFarms: "Grain Farms",
   animalFarms: "Animal Farms",
@@ -19,6 +19,10 @@ const BUILDING_DISPLAY_NAMES: { [key: string]: string } = {
   weaponSmiths: "Weapon Smiths",
 };
 
+/**
+ * Component that displays all calculated building requirements
+ * Shows the number of each building type needed for current production target
+ */
 export const BuildingOutput = () => {
   const buildingRequirements = useAppSelector(selectBuildingRequirements);
 

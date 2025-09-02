@@ -22,7 +22,7 @@ import {
 } from "../../store/config-store/configSlice";
 import { Resource } from "../../types/production";
 
-// Define the mapping from building labels to their produced resources
+/** Mapping from building display labels to their produced resources */
 const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
   { label: "Grain Farm", resource: "grain" },
   { label: "Animal Ranch", resource: "animal" },
@@ -38,16 +38,17 @@ const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
   { label: "Gold Smelting Works", resource: "goldBar" },
 ];
 
+/**
+ * Component for selecting building type and amount to calculate production requirements
+ * Updates soldiers per minute and building requirements based on user input
+ */
 export const BuildingInput = () => {
-  // --- STATE ---
   const dispatch = useAppDispatch();
   const { selectedCivilization } = useAppSelector(selectConfig);
   const [buildingAmount, setBuildingAmount] = useState(1);
   const [selectedResource, setSelectedResource] = useState<Resource>("grain");
 
-  // --- EFFECTS ---
   useEffect(() => {
-    // Calculate soldiers per minute and building requirements
     const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
       selectedResource,
       buildingAmount,
@@ -58,12 +59,10 @@ export const BuildingInput = () => {
       selectedCivilization
     );
 
-    // Update the store with calculated values
     dispatch(setSoldiersPerMinute(soldiersPerMinute || 0));
     dispatch(setBuildingRequirements(allBuildingsConfig));
   }, [selectedResource, buildingAmount, selectedCivilization, dispatch]);
 
-  // --- CALLBACKS ---
   const onInputChange = (event: SelectChangeEvent) => {
     const selectedBuilding = BUILDING_RESOURCE_MAP.find(
       (building) => building.label === event.target.value
@@ -80,7 +79,6 @@ export const BuildingInput = () => {
     }
   };
 
-  // --- RENDER ---
   const selectedBuilding = BUILDING_RESOURCE_MAP.find(
     (building) => building.resource === selectedResource
   );

@@ -1,6 +1,6 @@
-// Vikings civilization production rates
 import { CivilizationProductionRate } from "../types/production";
 
+/** Vikings civilization production rates */
 export const vikingsProductionConfig: CivilizationProductionRate = {
   grainFarm: { in: 1.724, out: 1.724 }, // Getreidefarm
   mill: { in: 3.772, out: 3.772 }, // Mühle

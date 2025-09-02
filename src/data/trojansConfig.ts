@@ -6,47 +6,47 @@ export const trojansProductionConfig: CivilizationProductionRate = {
     out: 1.841,
   },
   mill: {
-    in: 4.142, // Mühle - when no [out] specified, in/out are the same
+    in: 4.142,
     out: 4.142,
   },
   bakery: {
-    in: 2.139, // Bäcker - when no [out] specified, in/out are the same
+    in: 2.139,
     out: 2.139,
   },
   animalFarm: {
-    in: 2.833, // Tierzucht [in]
-    out: 2.125, // Tierzucht [out]
+    in: 2.833,
+    out: 2.125,
   },
   butcher: {
-    in: 5.868, // Metzger - when no [out] specified, in/out are the same
+    in: 5.868,
     out: 5.868,
   },
   waterworks: {
-    in: 7.222, // Wasserwerk [opt] - when no [out] specified, in/out are the same
+    in: 7.222,
     out: 7.222,
   },
   coalMine: {
-    in: 0.663, // Kohlemine [in]
-    out: 4.971, // Kohlemine [out]
+    in: 0.663,
+    out: 4.971,
   },
   ironMine: {
-    in: 0.736, // Eisenmine [in]
-    out: 2.761, // Eisenmine [out]
+    in: 0.736,
+    out: 2.761,
   },
   goldMine: {
-    in: 0.768, // Goldmine [in]
-    out: 2.161, // Goldmine [out]
+    in: 0.768,
+    out: 2.161,
   },
   goldSmelt: {
-    in: 2.041, // Goldschmelze - when no [out] specified, in/out are the same
+    in: 2.041,
     out: 2.041,
   },
   ironSmelt: {
-    in: 2.515, // Eisenschmelze - when no [out] specified, in/out are the same
+    in: 2.515,
     out: 2.515,
   },
   weaponSmith: {
-    in: 2.247, // Waffenschmiede - when no [out] specified, in/out are the same
+    in: 2.247,
     out: 2.247,
   },
 };

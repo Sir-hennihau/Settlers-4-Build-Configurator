@@ -3,13 +3,12 @@ import { getPreviewString } from "../../helpers/getPreviewString";
 import { selectConfig } from "../../store/config-store/configSlice";
 import { useAppSelector } from "../../store/hooks";
 
+/**
+ * Component that displays the calculated T3 soldiers per minute production rate
+ * Shows the result of the current building configuration
+ */
 export const SoldiersPerMinuteInfo = () => {
-  // --- STATE ---
-
   const { soldiersPerMinute } = useAppSelector(selectConfig);
-
-  // --- RENDER ---
-
   const soldiersPerMinuteString = getPreviewString(soldiersPerMinute);
 
   return (

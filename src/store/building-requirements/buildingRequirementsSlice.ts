@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { Building } from "../../types/production";
 
+/** State interface for building requirements */
 export interface BuildingRequirementsState {
   grainFarms: number;
   animalFarms: number;
@@ -32,6 +32,10 @@ const initialState: BuildingRequirementsState = {
   weaponSmiths: 0,
 };
 
+/**
+ * Redux slice for managing calculated building requirements
+ * Stores the number of each building type needed for current production target
+ */
 export const buildingRequirementsSlice = createSlice({
   name: "buildingRequirements",
   initialState,

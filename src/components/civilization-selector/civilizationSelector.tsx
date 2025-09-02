@@ -16,6 +16,10 @@ import {
   CIVILIZATION_DISPLAY_NAMES,
 } from "../../data/civilizationsConfig";
 
+/**
+ * Dropdown component for selecting different civilizations
+ * Changes affect all production calculations and building requirements
+ */
 export const CivilizationSelector = () => {
   const dispatch = useAppDispatch();
   const { selectedCivilization } = useAppSelector(selectConfig);

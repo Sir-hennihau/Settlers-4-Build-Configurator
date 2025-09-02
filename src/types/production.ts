@@ -1,5 +1,4 @@
-// Types for Settlers 4 production relationships
-
+/** Available resources in the production chain */
 export type Resource =
   | "grain"
   | "water"
@@ -16,14 +15,7 @@ export type Resource =
   | "fish"
   | "soldierT3";
 
-export interface ProductionRule {
-  building: string;
-  inputs: { resource: Resource; amount: number | "x" }[];
-  outputs: { resource: Resource; amount: number }[];
-}
-
-export type ProductionChain = ProductionRule[];
-
+/** Available building types */
 export type Building =
   | "grainFarm"
   | "mill"
@@ -38,6 +30,7 @@ export type Building =
   | "ironSmelt"
   | "weaponSmith";
 
+/** Production rate configuration for a single civilization */
 export type CivilizationProductionRate = Record<
   Building,
   {
@@ -45,7 +38,3 @@ export type CivilizationProductionRate = Record<
     out: number;
   }
 >;
-
-export interface CivilizationsConfig {
-  [civName: string]: CivilizationProductionRate;
-}

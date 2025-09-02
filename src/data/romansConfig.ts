@@ -1,6 +1,6 @@
-// Romas civilization production rates (English building names, in/out combined)
 import { CivilizationProductionRate } from "../types/production";
 
+/** Romans civilization production rates */
 export const romansProductionConfig: CivilizationProductionRate = {
   grainFarm: { in: 1.768, out: 1.768 },
   mill: { in: 4.519, out: 4.519 },

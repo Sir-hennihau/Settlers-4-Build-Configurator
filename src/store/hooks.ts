@@ -1,36 +1,22 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "./store";
 import { Building, Resource } from "../types/production";
-import { setBuildingRequirements } from "./building-requirements/buildingRequirementsSlice";
 import { civilizationsConfig } from "../data/civilizationsConfig";
-import { selectConfig } from "./config-store/configSlice";
 import { useMemo } from "react";
 
+/** Type-safe dispatch hook for Redux actions */
 export const useAppDispatch = () => useDispatch<AppDispatch>();
+
+/** Type-safe selector hook for Redux state */
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-export const useResources = (resource: Resource, amount: number) => {
-  const dispatch = useAppDispatch();
-  const { selectedCivilization } = useAppSelector(selectConfig);
-
-  const soldiersPerMinute =
-    getT3SolderProductionPerMinutePerResourceType(
-      resource,
-      amount,
-      selectedCivilization
-    ) || 0;
-
-  const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
-    soldiersPerMinute,
-    selectedCivilization
-  );
-
-  // Update the store with calculated building requirements
-  dispatch(setBuildingRequirements(allBuildingsConfig));
-
-  return allBuildingsConfig;
-};
-
+/**
+ * Calculates T3 soldier production per minute based on resource type, amount, and civilization
+ * @param resource - The resource type being produced
+ * @param amount - The amount of buildings producing this resource
+ * @param civilization - The civilization (affects production rates)
+ * @returns Number of T3 soldiers that can be produced per minute
+ */
 export const getT3SolderProductionPerMinutePerResourceType = (
   resource: Resource,
   amount: number,
@@ -97,6 +83,13 @@ export const getT3SolderProductionPerMinutePerResourceType = (
   }
 };
 
+/**
+ * Calculates the number of buildings needed to support a given T3 soldier production rate
+ * @param building - The building type
+ * @param t3pm - T3 soldiers per minute target
+ * @param civilization - The civilization (affects production rates)
+ * @returns Number of buildings needed
+ */
 const getBuildingAmountFromT3PerMinute = (
   building: Building,
   t3pm: number,
@@ -124,17 +117,6 @@ const getBuildingAmountFromT3PerMinute = (
     weatPerSoldier;
   const waterPerSoldier = grainPerSoldier;
 
-  console.log(
-    "(t3pm * coalPerSoldier) / civConfig.coalMine.out",
-    (t3pm * coalPerSoldier) / civConfig.coalMine.out
-  );
-  console.log(
-    "t3pm, coalPerSoldier, civConfig.coalMine.out",
-    t3pm,
-    coalPerSoldier,
-    civConfig.coalMine.out
-  );
-
   switch (building) {
     case "grainFarm":
       return (t3pm * grainPerSoldier) / civConfig.grainFarm.out;
@@ -161,53 +143,16 @@ const getBuildingAmountFromT3PerMinute = (
     case "weaponSmith":
       return (t3pm * weaponsPerSoldier) / civConfig.weaponSmith.out;
     default:
-      console.log("0 returned");
       return 0;
   }
 };
 
-// Hook to calculate resource requirements per soldier based on civilization
-export const useResourceRequirementsPerSoldier = (civilization?: string) => {
-  return useMemo(() => {
-    const civConfig = civilization
-      ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
-      : civilizationsConfig.romans;
-
-    const coalPerSoldier = 4;
-    const ironOrePerSoldier = 1;
-    const goldOrePerSoldier = 2;
-    const ironBarsPerSoldier = 1;
-    const goldBarsPerSoldier = 2;
-    const weaponsPerSoldier = 1;
-
-    const meatPerSoldier = civConfig.ironMine.in / civConfig.ironMine.out;
-    const breadPerSoldier =
-      (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
-    const animalPerSoldier = meatPerSoldier;
-    const weatPerSoldier = breadPerSoldier;
-    const grainPerSoldier =
-      (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
-      weatPerSoldier;
-    const waterPerSoldier = grainPerSoldier;
-
-    return {
-      coalPerSoldier,
-      ironOrePerSoldier,
-      goldOrePerSoldier,
-      ironBarsPerSoldier,
-      goldBarsPerSoldier,
-      weaponsPerSoldier,
-      meatPerSoldier,
-      breadPerSoldier,
-      animalPerSoldier,
-      weatPerSoldier,
-      waterPerSoldier,
-      grainPerSoldier,
-    };
-  }, [civilization]);
-};
-
-// Get all building amounts for a given soldiersPerMinute value
+/**
+ * Calculates all building requirements for a given T3 soldier production target
+ * @param soldiersPerMinute - Target T3 soldiers per minute
+ * @param civilization - The civilization type
+ * @returns Object containing the number of each building type needed
+ */
 export const getAllBuildingAmountsFromT3PerMinute = (
   soldiersPerMinute: number,
   civilization?: string

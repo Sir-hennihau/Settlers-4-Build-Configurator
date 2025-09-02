@@ -6,9 +6,11 @@ interface OutputItemProps {
   building: Building;
 }
 
+/**
+ * Component that displays a single building requirement item
+ * Shows the building name and required quantity
+ */
 export const OutputItem = ({ building }: OutputItemProps) => {
-  // --- RENDER ---
-
   const buildingAmountString = getPreviewString(building.multiplier);
 
   return (
