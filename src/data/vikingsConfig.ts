@@ -2,7 +2,7 @@
 import { CivilizationProductionRate } from "../types/production";
 
 export const vikingsProductionConfig: CivilizationProductionRate = {
-  grainFarm: { in: 1.654, out: 1.654 }, // Getreidefarm
+  grainFarm: { in: 1.724, out: 1.724 }, // Getreidefarm
   mill: { in: 3.772, out: 3.772 }, // Mühle
   bakery: { in: 2.051, out: 2.051 }, // Bäcker
   animalFarm: { in: 2.419, out: 1.815 }, // Tierzucht [in/out]

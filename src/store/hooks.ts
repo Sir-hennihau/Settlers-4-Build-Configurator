@@ -4,7 +4,7 @@ import { Building, Resource } from "../types/production";
 import { setBuildingRequirements } from "./building-requirements/buildingRequirementsSlice";
 import { civilizationsConfig } from "../data/civilizationsConfig";
 import { selectConfig } from "./config-store/configSlice";
-import { romansProductionConfig } from "../data/romansConfig";
+import { useMemo } from "react";
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -39,6 +39,25 @@ export const getT3SolderProductionPerMinutePerResourceType = (
   const civConfig = civilization
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
+
+  // Calculate resource requirements for this civilization
+  const coalPerSoldier = 4;
+  const ironOrePerSoldier = 1;
+  const goldOrePerSoldier = 2;
+  const ironBarsPerSoldier = 1;
+  const goldBarsPerSoldier = 2;
+  const weaponsPerSoldier = 1;
+
+  const meatPerSoldier = civConfig.ironMine.in / civConfig.ironMine.out;
+  const breadPerSoldier =
+    (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
+  const animalPerSoldier = meatPerSoldier;
+  const weatPerSoldier = breadPerSoldier;
+  const waterPerSoldier = meatPerSoldier + weatPerSoldier;
+  const grainPerSoldier =
+    (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
+    weatPerSoldier;
+
   switch (resource) {
     case "coal":
       return (civConfig.coalMine.out / coalPerSoldier) * amount;
@@ -54,6 +73,9 @@ export const getT3SolderProductionPerMinutePerResourceType = (
 
     case "goldBar":
       return (civConfig.goldSmelt.out / goldBarsPerSoldier) * amount;
+
+    case "weapon":
+      return (civConfig.weaponSmith.out / weaponsPerSoldier) * amount;
 
     case "meat":
       return (civConfig.butcher.out / meatPerSoldier) * amount;
@@ -83,15 +105,34 @@ const getBuildingAmountFromT3PerMinute = (
   const civConfig = civilization
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
+
+  // Calculate resource requirements for this civilization
+  const coalPerSoldier = 4;
+  const ironOrePerSoldier = 1;
+  const goldOrePerSoldier = 2;
+  const ironBarsPerSoldier = 1;
+  const goldBarsPerSoldier = 2;
+  const weaponsPerSoldier = 1;
+
+  const meatPerSoldier = civConfig.ironMine.in / civConfig.ironMine.out;
+  const breadPerSoldier =
+    (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
+  const animalPerSoldier = meatPerSoldier;
+  const weatPerSoldier = breadPerSoldier;
+  const waterPerSoldier = meatPerSoldier + weatPerSoldier;
+  const grainPerSoldier =
+    (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
+    weatPerSoldier;
+
   console.log(
-    "(t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out",
-    (t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out
+    "(t3pm * coalPerSoldier) / civConfig.coalMine.out",
+    (t3pm * coalPerSoldier) / civConfig.coalMine.out
   );
   console.log(
-    "t3pm, coalPerSoldier, romansProductionConfig.coalMine.ou",
+    "t3pm, coalPerSoldier, civConfig.coalMine.out",
     t3pm,
     coalPerSoldier,
-    romansProductionConfig.coalMine.out
+    civConfig.coalMine.out
   );
 
   switch (building) {
@@ -125,31 +166,46 @@ const getBuildingAmountFromT3PerMinute = (
   }
 };
 
-const coalPerSoldier = 4;
-const ironOrePerSoldier = 1;
-const goldOrePerSoldier = 2;
-const ironBarsPerSoldier = 1;
-const goldBarsPerSoldier = 2;
-const weaponsPerSoldier = 1;
+// Hook to calculate resource requirements per soldier based on civilization
+export const useResourceRequirementsPerSoldier = (civilization?: string) => {
+  return useMemo(() => {
+    const civConfig = civilization
+      ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+      : civilizationsConfig.romans;
 
-const meatPerSoldier =
-  romansProductionConfig.ironMine.in / romansProductionConfig.ironMine.out;
-console.log("meatPerSoldier", meatPerSoldier);
+    const coalPerSoldier = 4;
+    const ironOrePerSoldier = 1;
+    const goldOrePerSoldier = 2;
+    const ironBarsPerSoldier = 1;
+    const goldBarsPerSoldier = 2;
+    const weaponsPerSoldier = 1;
 
-const breadPerSoldier =
-  (romansProductionConfig.coalMine.in / romansProductionConfig.coalMine.out) *
-  coalPerSoldier;
-console.log("breadPerSoldier", breadPerSoldier);
+    const meatPerSoldier = civConfig.ironMine.in / civConfig.ironMine.out;
+    const breadPerSoldier =
+      (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
+    const animalPerSoldier = meatPerSoldier;
+    const weatPerSoldier = breadPerSoldier;
+    const grainPerSoldier =
+      (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
+      weatPerSoldier;
+    const waterPerSoldier = grainPerSoldier;
 
-const animalPerSoldier = meatPerSoldier;
-const weatPerSoldier = breadPerSoldier;
-
-const waterPerSoldier = meatPerSoldier + weatPerSoldier;
-
-console.log("waterPerSoldier", waterPerSoldier);
-
-const grainPerSoldier = meatPerSoldier + weatPerSoldier;
-console.log("grainPerSoldier", grainPerSoldier);
+    return {
+      coalPerSoldier,
+      ironOrePerSoldier,
+      goldOrePerSoldier,
+      ironBarsPerSoldier,
+      goldBarsPerSoldier,
+      weaponsPerSoldier,
+      meatPerSoldier,
+      breadPerSoldier,
+      animalPerSoldier,
+      weatPerSoldier,
+      waterPerSoldier,
+      grainPerSoldier,
+    };
+  }, [civilization]);
+};
 
 // Get all building amounts for a given soldiersPerMinute value
 export const getAllBuildingAmountsFromT3PerMinute = (
