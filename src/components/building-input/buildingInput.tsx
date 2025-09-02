@@ -9,49 +9,42 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
-import { BUILDINGS, BuildingInfo } from "../../data/buildings";
-import {
-  setSelectedBuilding,
-  setBuildingAmount,
-} from "../../store/building-selection/buildingSelectionSlice";
+import { BUILDINGS } from "../../data/buildings";
+import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
 import { useAppDispatch } from "../../store/hooks";
-import { BuildingType } from "../../types/production";
+import { Building } from "../../types/building";
 
 export const BuildingInput = () => {
   // --- STATE ---
 
   const dispatch = useAppDispatch();
 
-  const [localBuildingAmount, setLocalBuildingAmount] = useState(1);
-  const [localSelectedBuilding, setLocalSelectedBuilding] =
-    useState<BuildingType>("grainFarm");
+  const [buildingAmount, setBuildingAmount] = useState(1);
+  const [selectedBuilding, setSelectedBuilding] = useState(
+    JSON.stringify(BUILDINGS[0])
+  );
 
   // --- EFFECTS ---
 
   useEffect(() => {
-    // Initialize Redux state with default values
-    dispatch(setSelectedBuilding("grainFarm"));
-    dispatch(setBuildingAmount(1));
-  }, [dispatch]);
+    const parsedSelectedBuilding = JSON.parse(selectedBuilding) as Building;
 
-  useEffect(() => {
-    // Update Redux when local state changes
-    dispatch(setSelectedBuilding(localSelectedBuilding));
-    dispatch(setBuildingAmount(localBuildingAmount));
-  }, [localSelectedBuilding, localBuildingAmount, dispatch]);
+    const newSoldiersPerMinute =
+      buildingAmount / parsedSelectedBuilding.multiplier;
+    dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
+  }, [selectedBuilding, buildingAmount, dispatch]);
 
   // --- CALLBACKS ---
 
   const onInputChange = (event: SelectChangeEvent) => {
-    const buildingType = event.target.value as BuildingType;
-    setLocalSelectedBuilding(buildingType);
+    setSelectedBuilding(event.target.value);
   };
 
   const onBuildingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newBuildingAmount = Number(event.target.value);
-    if (!Number.isInteger(newBuildingAmount) || newBuildingAmount < 1) return;
+    if (!Number.isInteger(newBuildingAmount)) return;
 
-    setLocalBuildingAmount(newBuildingAmount);
+    setBuildingAmount(newBuildingAmount);
   };
 
   // --- RENDER ---
@@ -62,12 +55,12 @@ export const BuildingInput = () => {
         <FormControl fullWidth>
           <InputLabel>Building</InputLabel>
           <Select
-            value={localSelectedBuilding}
+            value={selectedBuilding}
             label="Building"
             onChange={onInputChange}
           >
-            {BUILDINGS.map((building: BuildingInfo) => (
-              <MenuItem key={building.type} value={building.type}>
+            {BUILDINGS.map((building) => (
+              <MenuItem key={building.label} value={JSON.stringify(building)}>
                 {building.label}
               </MenuItem>
             ))}
@@ -80,7 +73,7 @@ export const BuildingInput = () => {
           onChange={onBuildingAmountChange}
           sx={{ marginLeft: 2 }}
           variant="outlined"
-          value={localBuildingAmount}
+          value={buildingAmount}
         />
       </Stack>
     </Container>

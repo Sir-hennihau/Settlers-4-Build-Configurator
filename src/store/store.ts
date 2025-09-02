@@ -1,11 +1,9 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
 import configSlice from "./config-store/configSlice";
-import buildingSelectionSlice from "./building-selection/buildingSelectionSlice";
 
 export const store = configureStore({
   reducer: {
     config: configSlice,
-    buildingSelection: buildingSelectionSlice,
   },
 });
 

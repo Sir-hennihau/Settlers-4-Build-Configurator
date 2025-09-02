@@ -1,14 +1,23 @@
 import { Grid } from "@mui/material";
 import { getPreviewString } from "../../../helpers/getPreviewString";
-import { BuildingInfo } from "../../../data/buildings";
+import { selectConfig } from "../../../store/config-store/configSlice";
+import { useAppSelector } from "../../../store/hooks";
+import { Building } from "../../../types/building";
 
 interface OutputItemProps {
-  building: BuildingInfo;
-  requiredAmount: number;
+  building: Building;
 }
 
-export const OutputItem = ({ building, requiredAmount }: OutputItemProps) => {
-  const buildingAmountString = getPreviewString(requiredAmount);
+export const OutputItem = ({ building }: OutputItemProps) => {
+  // --- STATE ---
+
+  const { soldiersPerMinute } = useAppSelector(selectConfig);
+
+  // --- RENDER ---
+
+  const buildingAmountString = getPreviewString(
+    building.multiplier * soldiersPerMinute
+  );
 
   return (
     <>

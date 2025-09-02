@@ -16,38 +16,20 @@ export type Resource =
   | "fish"
   | "soldierT3";
 
-export type BuildingType =
-  | "grainFarm"
-  | "mill"
-  | "bakery"
-  | "animalFarm"
-  | "butcher"
-  | "waterworks"
-  | "coalMine"
-  | "ironMine"
-  | "goldMine"
-  | "goldSmelt"
-  | "ironSmelt"
-  | "weaponSmith"
-  | "barracks"
-  | "fishery";
-
 export interface ProductionRule {
   building: string;
-  inputs: { resource: Resource; amount: number }[];
+  inputs: { resource: Resource; amount: number | "x" }[];
   outputs: { resource: Resource; amount: number }[];
 }
 
 export type ProductionChain = ProductionRule[];
 
-export type CivilizationProductionRate = Record<
-  BuildingType,
-  {
+export interface CivilizationProductionRate {
+  [buildingGerman: string]: {
     in: number;
     out: number;
-    producedGood: Resource;
-  }
->;
+  };
+}
 
 export interface CivilizationsConfig {
   [civName: string]: CivilizationProductionRate;
