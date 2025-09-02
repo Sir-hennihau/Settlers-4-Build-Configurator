@@ -25,6 +25,8 @@ export const mayaProductionConfig: CivilizationProductionRate = {
     in: 5.951,
     out: 5.951,
   },
+  stoneMine: { in: 0.704, out: 2.641 },
+
   coalMine: {
     in: 0.663,
     out: 4.971,

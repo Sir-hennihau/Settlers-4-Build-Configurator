@@ -1,5 +1,6 @@
 /** Available resources in the production chain */
 export type Resource =
+  | "stone"
   | "grain"
   | "water"
   | "animal"
@@ -26,6 +27,7 @@ export type Building =
   | "coalMine"
   | "ironMine"
   | "goldMine"
+  | "stoneMine"
   | "goldSmelt"
   | "ironSmelt"
   | "weaponSmith";

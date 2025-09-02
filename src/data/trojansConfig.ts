@@ -25,6 +25,7 @@ export const trojansProductionConfig: CivilizationProductionRate = {
     in: 7.222,
     out: 7.222,
   },
+  stoneMine: { in: 0.736, out: 2.761 },
   coalMine: {
     in: 0.663,
     out: 4.971,

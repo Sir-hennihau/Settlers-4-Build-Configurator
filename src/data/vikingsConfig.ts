@@ -2,16 +2,17 @@ import { CivilizationProductionRate } from "../types/production";
 
 /** Vikings civilization production rates */
 export const vikingsProductionConfig: CivilizationProductionRate = {
-  grainFarm: { in: 1.724, out: 1.724 }, // Getreidefarm
-  mill: { in: 3.772, out: 3.772 }, // Mühle
-  bakery: { in: 2.051, out: 2.051 }, // Bäcker
-  animalFarm: { in: 2.419, out: 1.815 }, // Tierzucht [in/out]
-  butcher: { in: 3.894, out: 3.894 }, // Metzger
-  waterworks: { in: 5.121, out: 5.121 }, // Wasserwerk [opt]
-  coalMine: { in: 0.722, out: 5.417 }, // Kohlemine [in/out]
-  ironMine: { in: 0.736, out: 2.761 }, // Eisenmine [in/out]
-  goldMine: { in: 0.799, out: 2.247 }, // Goldmine [in/out]
-  goldSmelt: { in: 3.029, out: 3.029 }, // Goldschmelze
-  ironSmelt: { in: 3.107, out: 3.107 }, // Eisenschmelze
-  weaponSmith: { in: 2.592, out: 2.592 }, // Waffenschmiede
+  grainFarm: { in: 1.724, out: 1.724 },
+  mill: { in: 3.772, out: 3.772 },
+  bakery: { in: 2.051, out: 2.051 },
+  animalFarm: { in: 2.419, out: 1.815 },
+  butcher: { in: 3.894, out: 3.894 },
+  waterworks: { in: 5.121, out: 5.121 },
+  stoneMine: { in: 0.722, out: 2.761 },
+  coalMine: { in: 0.722, out: 5.417 },
+  ironMine: { in: 0.736, out: 2.761 },
+  goldMine: { in: 0.799, out: 2.247 },
+  goldSmelt: { in: 3.029, out: 3.029 },
+  ironSmelt: { in: 3.107, out: 3.107 },
+  weaponSmith: { in: 2.592, out: 2.592 },
 };
