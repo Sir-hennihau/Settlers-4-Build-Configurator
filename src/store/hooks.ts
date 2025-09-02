@@ -119,10 +119,10 @@ const getBuildingAmountFromT3PerMinute = (
     (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
   const animalPerSoldier = meatPerSoldier;
   const weatPerSoldier = breadPerSoldier;
-  const waterPerSoldier = meatPerSoldier + weatPerSoldier;
   const grainPerSoldier =
     (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
     weatPerSoldier;
+  const waterPerSoldier = grainPerSoldier;
 
   console.log(
     "(t3pm * coalPerSoldier) / civConfig.coalMine.out",
