@@ -9,11 +9,14 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
-import { useAppDispatch } from "../../store/hooks";
+import {
+  getT3SolderProductionPerMinutePerResourceType,
+  useAppDispatch,
+} from "../../store/hooks";
 import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
 import { getAllBuildingAmountsFromT3PerMinute } from "../../store/hooks";
 import { Resource } from "../../types/production";
-import { romasProductionConfig } from "../../data/romasConfig";
+import { romansProductionConfig } from "../../data/romansConfig";
 
 // Define the mapping from building labels to their produced resources
 const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
@@ -31,56 +34,6 @@ const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
   { label: "Gold Smelting Works", resource: "goldBar" },
 ];
 
-// Helper function to calculate soldiers per minute from resource
-const getT3SolderProductionPerMinutePerResourceType = (
-  resource: Resource,
-  amount: number
-): number => {
-  const coalPerSoldier = 4;
-  const ironOrePerSoldier = 1;
-  const goldOrePerSoldier = 2;
-  const ironBarsPerSoldier = 1;
-  const goldBarsPerSoldier = 2;
-  const meatPerSoldier = ironOrePerSoldier / 10;
-  const breadPerSoldier = coalPerSoldier / 10;
-  const fishPerSoldier = goldOrePerSoldier / 10;
-  const animalPerSoldier = meatPerSoldier;
-  const weatPerSoldier = breadPerSoldier;
-  const waterPerSoldier = animalPerSoldier + weatPerSoldier;
-  const grainPerSoldier = animalPerSoldier + weatPerSoldier;
-
-  switch (resource) {
-    case "coal":
-      return (romasProductionConfig.coalMine.out / coalPerSoldier) * amount;
-    case "ironOre":
-      return (romasProductionConfig.ironMine.out / ironOrePerSoldier) * amount;
-    case "goldOre":
-      return (romasProductionConfig.goldMine.out / goldBarsPerSoldier) * amount;
-    case "ironBar":
-      return (
-        (romasProductionConfig.ironSmelt.out / ironBarsPerSoldier) * amount
-      );
-    case "goldBar":
-      return (
-        (romasProductionConfig.goldSmelt.out / goldBarsPerSoldier) * amount
-      );
-    case "meat":
-      return (romasProductionConfig.butcher.out / meatPerSoldier) * amount;
-    case "bread":
-      return (romasProductionConfig.bakery.out / breadPerSoldier) * amount;
-    case "animal":
-      return (romasProductionConfig.animalFarm.out / animalPerSoldier) * amount;
-    case "weat":
-      return (romasProductionConfig.mill.out / weatPerSoldier) * amount;
-    case "grain":
-      return (romasProductionConfig.grainFarm.out / grainPerSoldier) * amount;
-    case "water":
-      return (romasProductionConfig.waterworks.out / waterPerSoldier) * amount;
-    default:
-      return 0;
-  }
-};
-
 export const BuildingInput = () => {
   // --- STATE ---
   const dispatch = useAppDispatch();
@@ -94,8 +47,11 @@ export const BuildingInput = () => {
       selectedResource,
       buildingAmount
     );
-    const allBuildingsConfig =
-      getAllBuildingAmountsFromT3PerMinute(soldiersPerMinute);
+    const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
+      soldiersPerMinute || 0
+    );
+    console.log("soldiersPerMinute", soldiersPerMinute);
+    console.log("allBuildingsConfig", allBuildingsConfig);
 
     // Update the store with calculated building requirements
     dispatch(setBuildingRequirements(allBuildingsConfig));

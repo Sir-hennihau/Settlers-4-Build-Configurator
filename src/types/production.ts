@@ -34,7 +34,6 @@ export type Building =
   | "coalMine"
   | "ironMine"
   | "goldMine"
-  | "stoneMine"
   | "goldSmelt"
   | "ironSmelt"
   | "weaponSmith";

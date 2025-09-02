@@ -14,7 +14,6 @@ const BUILDING_DISPLAY_NAMES: { [key: string]: string } = {
   coalMines: "Coal Mines",
   ironMines: "Iron Mines",
   goldMines: "Gold Mines",
-  stoneMines: "Stone Mines",
   goldSmelts: "Gold Smelts",
   ironSmelts: "Iron Smelts",
   weaponSmiths: "Weapon Smiths",

@@ -12,7 +12,6 @@ export interface BuildingRequirementsState {
   coalMines: number;
   ironMines: number;
   goldMines: number;
-  stoneMines: number;
   goldSmelts: number;
   ironSmelts: number;
   weaponSmiths: number;
@@ -28,7 +27,6 @@ const initialState: BuildingRequirementsState = {
   coalMines: 0,
   ironMines: 0,
   goldMines: 0,
-  stoneMines: 0,
   goldSmelts: 0,
   ironSmelts: 0,
   weaponSmiths: 0,
