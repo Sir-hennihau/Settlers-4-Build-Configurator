@@ -2,26 +2,22 @@ import { Grid } from "@mui/material";
 import { getPreviewString } from "../../../helpers/getPreviewString";
 import { selectConfig } from "../../../store/config-store/configSlice";
 import { useAppSelector } from "../../../store/hooks";
-import { BuildingProductionRate } from "../../../types/building";
-import { getBuildingMultiplier } from "../../../helpers/buildingCalculations";
+import { Building } from "../../../types/building";
 
 interface OutputItemProps {
-  building: BuildingProductionRate;
+  building: Building;
 }
 
 export const OutputItem = ({ building }: OutputItemProps) => {
   // --- STATE ---
 
-  const { soldiersPerMinute, selectedCivilization } =
-    useAppSelector(selectConfig);
+  const { soldiersPerMinute } = useAppSelector(selectConfig);
 
   // --- RENDER ---
 
-  const multiplier = getBuildingMultiplier(
-    building.label,
-    selectedCivilization
+  const buildingAmountString = getPreviewString(
+    building.multiplier * soldiersPerMinute
   );
-  const buildingAmountString = getPreviewString(multiplier * soldiersPerMinute);
 
   return (
     <>

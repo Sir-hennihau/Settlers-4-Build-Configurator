@@ -9,68 +9,30 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
-import {
-  setSoldiersPerMinute,
-  selectConfig,
-} from "../../store/config-store/configSlice";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { BuildingProductionRate } from "../../types/building";
-import { getBuildingsForCivilization } from "../../data/civilizationBuildings";
-import { getBuildingMultiplier } from "../../helpers/buildingCalculations";
+import { BUILDINGS } from "../../data/buildings";
+import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
+import { useAppDispatch } from "../../store/hooks";
+import { Building } from "../../types/building";
 
 export const BuildingInput = () => {
   // --- STATE ---
 
   const dispatch = useAppDispatch();
-  const { selectedCivilization } = useAppSelector(selectConfig);
-  const buildings = getBuildingsForCivilization(selectedCivilization);
 
   const [buildingAmount, setBuildingAmount] = useState(1);
-
-  // Find Grain Farm as default, fallback to first building if not found
-  const getDefaultBuilding = () => {
-    const grainFarm = buildings.find((b) => b.label === "Grain Farm");
-    return grainFarm
-      ? JSON.stringify(grainFarm)
-      : buildings.length > 0
-      ? JSON.stringify(buildings[0])
-      : "";
-  };
-
   const [selectedBuilding, setSelectedBuilding] = useState(
-    getDefaultBuilding()
+    JSON.stringify(BUILDINGS[0])
   );
 
   // --- EFFECTS ---
 
   useEffect(() => {
-    if (buildings.length > 0 && !selectedBuilding) {
-      const grainFarm = buildings.find((b) => b.label === "Grain Farm");
-      const defaultBuilding = grainFarm
-        ? JSON.stringify(grainFarm)
-        : buildings.length > 0
-        ? JSON.stringify(buildings[0])
-        : "";
-      setSelectedBuilding(defaultBuilding);
-    }
-  }, [buildings, selectedBuilding]);
+    const parsedSelectedBuilding = JSON.parse(selectedBuilding) as Building;
 
-  useEffect(() => {
-    if (selectedBuilding) {
-      const parsedSelectedBuilding = JSON.parse(
-        selectedBuilding
-      ) as BuildingProductionRate;
-      const multiplier = getBuildingMultiplier(
-        parsedSelectedBuilding.label,
-        selectedCivilization
-      );
-
-      if (multiplier > 0) {
-        const newSoldiersPerMinute = buildingAmount / multiplier;
-        dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
-      }
-    }
-  }, [selectedBuilding, buildingAmount, selectedCivilization, dispatch]);
+    const newSoldiersPerMinute =
+      buildingAmount / parsedSelectedBuilding.multiplier;
+    dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
+  }, [selectedBuilding, buildingAmount, dispatch]);
 
   // --- CALLBACKS ---
 
@@ -97,7 +59,7 @@ export const BuildingInput = () => {
             label="Building"
             onChange={onInputChange}
           >
-            {buildings.map((building) => (
+            {BUILDINGS.map((building) => (
               <MenuItem key={building.label} value={JSON.stringify(building)}>
                 {building.label}
               </MenuItem>
