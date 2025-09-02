@@ -182,20 +182,22 @@ export const getAllBuildingAmountsFromT3PerMinute = (
     civilization,
     stoneMineAmount
   ),
-  animalFarms: getBuildingAmountFromT3PerMinute(
-    "animalFarm",
-    soldiersPerMinute,
-    civilization,
-    stoneMineAmount
-  ),
+
   waterworks: getBuildingAmountFromT3PerMinute(
     "waterworks",
     soldiersPerMinute,
     civilization,
     stoneMineAmount
   ),
+
   mills: getBuildingAmountFromT3PerMinute(
     "mill",
+    soldiersPerMinute,
+    civilization,
+    stoneMineAmount
+  ),
+  animalFarms: getBuildingAmountFromT3PerMinute(
+    "animalFarm",
     soldiersPerMinute,
     civilization,
     stoneMineAmount
@@ -231,12 +233,7 @@ export const getAllBuildingAmountsFromT3PerMinute = (
     stoneMineAmount
   ),
   stoneMines: 0,
-  goldSmelts: getBuildingAmountFromT3PerMinute(
-    "goldSmelt",
-    soldiersPerMinute,
-    civilization,
-    stoneMineAmount
-  ),
+
   ironSmelts: getBuildingAmountFromT3PerMinute(
     "ironSmelt",
     soldiersPerMinute,
@@ -245,6 +242,12 @@ export const getAllBuildingAmountsFromT3PerMinute = (
   ),
   weaponSmiths: getBuildingAmountFromT3PerMinute(
     "weaponSmith",
+    soldiersPerMinute,
+    civilization,
+    stoneMineAmount
+  ),
+  goldSmelts: getBuildingAmountFromT3PerMinute(
+    "goldSmelt",
     soldiersPerMinute,
     civilization,
     stoneMineAmount
