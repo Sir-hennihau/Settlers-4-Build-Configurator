@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../store/store";
 import { ProductionChain } from "../../types/production";
+import { romasProductionConfig } from "../../data/romasConfig";
 
 export interface ConfigState {
   soldiersPerMinute: number;
@@ -11,10 +12,30 @@ const initialState: ConfigState = {
   soldiersPerMinute: 1,
   productionChain: [
     {
+      building: "grainFarm",
+      inputs: [],
+      outputs: [{ resource: "grain", amount: 1 }],
+    },
+    {
+      building: "waterworks",
+      inputs: [],
+      outputs: [{ resource: "water", amount: 1 }],
+    },
+    {
       building: "animalFarm",
       inputs: [
-        { resource: "grain", amount: "x" },
-        { resource: "water", amount: "x" },
+        {
+          resource: "grain",
+          amount:
+            romasProductionConfig.animalFarm.in /
+            romasProductionConfig.animalFarm.out,
+        },
+        {
+          resource: "water",
+          amount:
+            romasProductionConfig.animalFarm.in /
+            romasProductionConfig.animalFarm.out,
+        },
       ],
       outputs: [{ resource: "animal", amount: 1 }],
     },
@@ -38,17 +59,38 @@ const initialState: ConfigState = {
     },
     {
       building: "coalMine",
-      inputs: [{ resource: "bread", amount: "x" }],
+      inputs: [
+        {
+          resource: "bread",
+          amount:
+            romasProductionConfig.coalMine.in /
+            romasProductionConfig.coalMine.out,
+        },
+      ],
       outputs: [{ resource: "coal", amount: 1 }],
     },
     {
       building: "ironMine",
-      inputs: [{ resource: "meat", amount: "x" }],
+      inputs: [
+        {
+          resource: "meat",
+          amount:
+            romasProductionConfig.ironMine.in /
+            romasProductionConfig.ironMine.out,
+        },
+      ],
       outputs: [{ resource: "ironOre", amount: 1 }],
     },
     {
       building: "goldMine",
-      inputs: [{ resource: "fish", amount: "x" }],
+      inputs: [
+        {
+          resource: "fish",
+          amount:
+            romasProductionConfig.goldMine.in /
+            romasProductionConfig.goldMine.out,
+        },
+      ],
       outputs: [{ resource: "goldOre", amount: 1 }],
     },
     {
@@ -76,7 +118,12 @@ const initialState: ConfigState = {
       outputs: [{ resource: "goldBar", amount: 1 }],
     },
     {
-      building: "soldierProduction",
+      building: "fishery",
+      inputs: [],
+      outputs: [{ resource: "fish", amount: 1 }],
+    },
+    {
+      building: "barracks",
       inputs: [
         { resource: "weapon", amount: 1 },
         { resource: "goldBar", amount: 2 },
