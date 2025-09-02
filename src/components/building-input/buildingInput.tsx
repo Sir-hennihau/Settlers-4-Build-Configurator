@@ -11,13 +11,16 @@ import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
   getT3SolderProductionPerMinutePerResourceType,
+  getAllBuildingAmountsFromT3PerMinute,
   useAppDispatch,
+  useAppSelector,
 } from "../../store/hooks";
 import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
-import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
-import { getAllBuildingAmountsFromT3PerMinute } from "../../store/hooks";
+import {
+  setSoldiersPerMinute,
+  selectConfig,
+} from "../../store/config-store/configSlice";
 import { Resource } from "../../types/production";
-import { romansProductionConfig } from "../../data/romansConfig";
 
 // Define the mapping from building labels to their produced resources
 const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
@@ -38,6 +41,7 @@ const BUILDING_RESOURCE_MAP: { label: string; resource: Resource }[] = [
 export const BuildingInput = () => {
   // --- STATE ---
   const dispatch = useAppDispatch();
+  const { selectedCivilization } = useAppSelector(selectConfig);
   const [buildingAmount, setBuildingAmount] = useState(1);
   const [selectedResource, setSelectedResource] = useState<Resource>("grain");
 
@@ -46,18 +50,18 @@ export const BuildingInput = () => {
     // Calculate soldiers per minute and building requirements
     const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
       selectedResource,
-      buildingAmount
+      buildingAmount,
+      selectedCivilization
     );
     const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
-      soldiersPerMinute || 0
+      soldiersPerMinute || 0,
+      selectedCivilization
     );
-    console.log("soldiersPerMinute", soldiersPerMinute);
-    console.log("allBuildingsConfig", allBuildingsConfig);
 
     // Update the store with calculated values
     dispatch(setSoldiersPerMinute(soldiersPerMinute || 0));
     dispatch(setBuildingRequirements(allBuildingsConfig));
-  }, [selectedResource, buildingAmount, dispatch]);
+  }, [selectedResource, buildingAmount, selectedCivilization, dispatch]);
 
   // --- CALLBACKS ---
   const onInputChange = (event: SelectChangeEvent) => {

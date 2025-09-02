@@ -17,7 +17,7 @@ export const SoldiersPerMinuteInfo = () => {
       <Divider sx={{ marginTop: 2 }} />
       <Grid container spacing={2} sx={{ marginTop: 1 }}>
         <Grid item sx={{ fontWeight: "bold" }} xs={8}>
-          Soldiers per minute
+          T3 Soldiers per minute
         </Grid>
         <Grid item sx={{ fontWeight: "bold" }} xs={4}>
           {soldiersPerMinuteString}

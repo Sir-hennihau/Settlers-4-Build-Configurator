@@ -1,61 +1,88 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "./store";
-import { romansProductionConfig } from "../data/romansConfig";
 import { Building, Resource } from "../types/production";
 import { setBuildingRequirements } from "./building-requirements/buildingRequirementsSlice";
+import { civilizationsConfig } from "../data/civilizationsConfig";
+import { selectConfig } from "./config-store/configSlice";
+import { romansProductionConfig } from "../data/romansConfig";
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+export const useResources = (resource: Resource, amount: number) => {
+  const dispatch = useAppDispatch();
+  const { selectedCivilization } = useAppSelector(selectConfig);
+
+  const soldiersPerMinute =
+    getT3SolderProductionPerMinutePerResourceType(
+      resource,
+      amount,
+      selectedCivilization
+    ) || 0;
+
+  const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
+    soldiersPerMinute,
+    selectedCivilization
+  );
+
+  // Update the store with calculated building requirements
+  dispatch(setBuildingRequirements(allBuildingsConfig));
+
+  return allBuildingsConfig;
+};
+
 export const getT3SolderProductionPerMinutePerResourceType = (
   resource: Resource,
-  amount: number
+  amount: number,
+  civilization?: string
 ) => {
+  const civConfig = civilization
+    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+    : civilizationsConfig.romans;
   switch (resource) {
     case "coal":
-      return (romansProductionConfig.coalMine.out / coalPerSoldier) * amount;
+      return (civConfig.coalMine.out / coalPerSoldier) * amount;
 
     case "ironOre":
-      return (romansProductionConfig.ironMine.out / ironOrePerSoldier) * amount;
+      return (civConfig.ironMine.out / ironOrePerSoldier) * amount;
 
-    case "goldBar":
-      return (
-        (romansProductionConfig.goldMine.out / goldBarsPerSoldier) * amount
-      );
+    case "goldOre":
+      return (civConfig.goldMine.out / goldBarsPerSoldier) * amount;
 
     case "ironBar":
-      return (
-        (romansProductionConfig.ironSmelt.out / ironBarsPerSoldier) * amount
-      );
+      return (civConfig.ironSmelt.out / ironBarsPerSoldier) * amount;
 
     case "goldBar":
-      return (
-        (romansProductionConfig.goldSmelt.out / goldBarsPerSoldier) * amount
-      );
+      return (civConfig.goldSmelt.out / goldBarsPerSoldier) * amount;
 
     case "meat":
-      return (romansProductionConfig.butcher.out / meatPerSoldier) * amount;
+      return (civConfig.butcher.out / meatPerSoldier) * amount;
 
     case "bread":
-      return (romansProductionConfig.bakery.out / breadPerSoldier) * amount;
+      return (civConfig.bakery.out / breadPerSoldier) * amount;
 
     case "animal":
-      return (
-        (romansProductionConfig.animalFarm.out / animalPerSoldier) * amount
-      );
+      return (civConfig.animalFarm.out / animalPerSoldier) * amount;
 
     case "weat":
-      return (romansProductionConfig.mill.out / weatPerSoldier) * amount;
+      return (civConfig.mill.out / weatPerSoldier) * amount;
 
     case "grain":
-      return (romansProductionConfig.grainFarm.out / grainPerSoldier) * amount;
+      return (civConfig.grainFarm.out / grainPerSoldier) * amount;
 
     case "water":
-      return (romansProductionConfig.waterworks.out / waterPerSoldier) * amount;
+      return (civConfig.waterworks.out / waterPerSoldier) * amount;
   }
 };
 
-const getBuildingAmountFromT3PerMinute = (building: Building, t3pm: number) => {
+const getBuildingAmountFromT3PerMinute = (
+  building: Building,
+  t3pm: number,
+  civilization?: string
+) => {
+  const civConfig = civilization
+    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+    : civilizationsConfig.romans;
   console.log(
     "(t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out",
     (t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out
@@ -69,34 +96,29 @@ const getBuildingAmountFromT3PerMinute = (building: Building, t3pm: number) => {
 
   switch (building) {
     case "grainFarm":
-      return (t3pm * grainPerSoldier) / romansProductionConfig.grainFarm.out;
+      return (t3pm * grainPerSoldier) / civConfig.grainFarm.out;
     case "mill":
-      return (t3pm * weatPerSoldier) / romansProductionConfig.mill.out;
+      return (t3pm * weatPerSoldier) / civConfig.mill.out;
     case "bakery":
-      return (t3pm * breadPerSoldier) / romansProductionConfig.bakery.out;
+      return (t3pm * breadPerSoldier) / civConfig.bakery.out;
     case "animalFarm":
-      return (t3pm * animalPerSoldier) / romansProductionConfig.animalFarm.out;
+      return (t3pm * animalPerSoldier) / civConfig.animalFarm.out;
     case "butcher":
-      return (t3pm * meatPerSoldier) / romansProductionConfig.butcher.out;
+      return (t3pm * meatPerSoldier) / civConfig.butcher.out;
     case "waterworks":
-      return (t3pm * waterPerSoldier) / romansProductionConfig.waterworks.out;
+      return (t3pm * waterPerSoldier) / civConfig.waterworks.out;
     case "coalMine":
-      return (t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out;
+      return (t3pm * coalPerSoldier) / civConfig.coalMine.out;
     case "ironMine":
-      return (t3pm * ironOrePerSoldier) / romansProductionConfig.ironMine.out;
+      return (t3pm * ironOrePerSoldier) / civConfig.ironMine.out;
     case "goldMine":
-      return (t3pm * goldOrePerSoldier) / romansProductionConfig.goldMine.out;
-
+      return (t3pm * goldOrePerSoldier) / civConfig.goldMine.out;
     case "goldSmelt":
-      return (t3pm * goldBarsPerSoldier) / romansProductionConfig.goldSmelt.out;
+      return (t3pm * goldBarsPerSoldier) / civConfig.goldSmelt.out;
     case "ironSmelt":
-      return (t3pm * ironBarsPerSoldier) / romansProductionConfig.ironSmelt.out;
+      return (t3pm * ironBarsPerSoldier) / civConfig.ironSmelt.out;
     case "weaponSmith":
-      // If you have a weaponPerSoldier constant, use it here; otherwise, set to 0 or appropriate logic
-      return (
-        (t3pm * weaponsPerSoldier) / romansProductionConfig.weaponSmith.out
-      );
-
+      return (t3pm * weaponsPerSoldier) / civConfig.weaponSmith.out;
     default:
       console.log("0 returned");
       return 0;
@@ -131,25 +153,67 @@ console.log("grainPerSoldier", grainPerSoldier);
 
 // Get all building amounts for a given soldiersPerMinute value
 export const getAllBuildingAmountsFromT3PerMinute = (
-  soldiersPerMinute: number
+  soldiersPerMinute: number,
+  civilization?: string
 ) => ({
-  grainFarms: getBuildingAmountFromT3PerMinute("grainFarm", soldiersPerMinute),
+  grainFarms: getBuildingAmountFromT3PerMinute(
+    "grainFarm",
+    soldiersPerMinute,
+    civilization
+  ),
   animalFarms: getBuildingAmountFromT3PerMinute(
     "animalFarm",
-    soldiersPerMinute
+    soldiersPerMinute,
+    civilization
   ),
-  waterworks: getBuildingAmountFromT3PerMinute("waterworks", soldiersPerMinute),
-  mills: getBuildingAmountFromT3PerMinute("mill", soldiersPerMinute),
-  bakeries: getBuildingAmountFromT3PerMinute("bakery", soldiersPerMinute),
-  butchers: getBuildingAmountFromT3PerMinute("butcher", soldiersPerMinute),
-  coalMines: getBuildingAmountFromT3PerMinute("coalMine", soldiersPerMinute),
-  ironMines: getBuildingAmountFromT3PerMinute("ironMine", soldiersPerMinute),
-  goldMines: getBuildingAmountFromT3PerMinute("goldMine", soldiersPerMinute),
-
-  goldSmelts: getBuildingAmountFromT3PerMinute("goldSmelt", soldiersPerMinute),
-  ironSmelts: getBuildingAmountFromT3PerMinute("ironSmelt", soldiersPerMinute),
+  waterworks: getBuildingAmountFromT3PerMinute(
+    "waterworks",
+    soldiersPerMinute,
+    civilization
+  ),
+  mills: getBuildingAmountFromT3PerMinute(
+    "mill",
+    soldiersPerMinute,
+    civilization
+  ),
+  bakeries: getBuildingAmountFromT3PerMinute(
+    "bakery",
+    soldiersPerMinute,
+    civilization
+  ),
+  butchers: getBuildingAmountFromT3PerMinute(
+    "butcher",
+    soldiersPerMinute,
+    civilization
+  ),
+  coalMines: getBuildingAmountFromT3PerMinute(
+    "coalMine",
+    soldiersPerMinute,
+    civilization
+  ),
+  ironMines: getBuildingAmountFromT3PerMinute(
+    "ironMine",
+    soldiersPerMinute,
+    civilization
+  ),
+  goldMines: getBuildingAmountFromT3PerMinute(
+    "goldMine",
+    soldiersPerMinute,
+    civilization
+  ),
+  goldSmelts: getBuildingAmountFromT3PerMinute(
+    "goldSmelt",
+    soldiersPerMinute,
+    civilization
+  ),
+  ironSmelts: getBuildingAmountFromT3PerMinute(
+    "ironSmelt",
+    soldiersPerMinute,
+    civilization
+  ),
   weaponSmiths: getBuildingAmountFromT3PerMinute(
     "weaponSmith",
-    soldiersPerMinute
+    soldiersPerMinute,
+    civilization
   ),
 });
