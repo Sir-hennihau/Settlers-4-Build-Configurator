@@ -146,9 +146,16 @@ export const BuildingInput = () => {
             background: "#f5f5f5",
             cursor: "pointer",
           }}
-          onClick={() => setShowStoneMineInput((v) => !v)}
+          onClick={() => {
+            if (showStoneMineInput) {
+              setStoneMineAmount(0);
+            }
+            setShowStoneMineInput((v) => !v);
+          }}
         >
-          Add stone mines (optional)
+          {showStoneMineInput
+            ? "Hide stone mines input"
+            : "Add stone mines (optional)"}
         </button>
         {showStoneMineInput && (
           <TextField
