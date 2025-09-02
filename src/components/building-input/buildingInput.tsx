@@ -14,6 +14,7 @@ import {
   useAppDispatch,
 } from "../../store/hooks";
 import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
+import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
 import { getAllBuildingAmountsFromT3PerMinute } from "../../store/hooks";
 import { Resource } from "../../types/production";
 import { romansProductionConfig } from "../../data/romansConfig";
@@ -53,7 +54,8 @@ export const BuildingInput = () => {
     console.log("soldiersPerMinute", soldiersPerMinute);
     console.log("allBuildingsConfig", allBuildingsConfig);
 
-    // Update the store with calculated building requirements
+    // Update the store with calculated values
+    dispatch(setSoldiersPerMinute(soldiersPerMinute || 0));
     dispatch(setBuildingRequirements(allBuildingsConfig));
   }, [selectedResource, buildingAmount, dispatch]);
 

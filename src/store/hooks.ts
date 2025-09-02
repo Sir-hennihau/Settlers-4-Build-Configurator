@@ -56,6 +56,17 @@ export const getT3SolderProductionPerMinutePerResourceType = (
 };
 
 const getBuildingAmountFromT3PerMinute = (building: Building, t3pm: number) => {
+  console.log(
+    "(t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out",
+    (t3pm * coalPerSoldier) / romansProductionConfig.coalMine.out
+  );
+  console.log(
+    "t3pm, coalPerSoldier, romansProductionConfig.coalMine.ou",
+    t3pm,
+    coalPerSoldier,
+    romansProductionConfig.coalMine.out
+  );
+
   switch (building) {
     case "grainFarm":
       return (t3pm * grainPerSoldier) / romansProductionConfig.grainFarm.out;
