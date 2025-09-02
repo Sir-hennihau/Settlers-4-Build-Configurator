@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
 import configSlice from "./config-store/configSlice";
+import buildingRequirementsSlice from "./building-requirements/buildingRequirementsSlice";
 
 export const store = configureStore({
   reducer: {
     config: configSlice,
+    buildingRequirements: buildingRequirementsSlice,
   },
 });
 

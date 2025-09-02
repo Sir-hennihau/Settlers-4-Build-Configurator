@@ -34,6 +34,7 @@ export type Building =
   | "coalMine"
   | "ironMine"
   | "goldMine"
+  | "stoneMine"
   | "goldSmelt"
   | "ironSmelt"
   | "weaponSmith";
@@ -41,8 +42,8 @@ export type Building =
 export type CivilizationProductionRate = Record<
   Building,
   {
-    in: { resource: Resource; amount: number }[];
-    out: { resource: Resource; amount: number };
+    in: number;
+    out: number;
   }
 >;
 
