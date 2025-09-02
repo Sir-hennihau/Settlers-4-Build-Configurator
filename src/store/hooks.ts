@@ -7,10 +7,11 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useResources = (resource: Resource, amount: number) => {
-  const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
-    resource,
-    amount
-  );
+  const soldiersPerMinute =
+    getT3SolderProductionPerMinutePerResourceType(resource, amount) || 0;
+
+  const allBuildingsConfig =
+    getAllBuildingAmountsFromT3PerMinute(soldiersPerMinute);
 };
 
 const getT3SolderProductionPerMinutePerResourceType = (
@@ -145,3 +146,27 @@ const weatPerSoldier = breadPerSoldier;
 
 const waterPerSoldier = animalPerSoldier + weatPerSoldier;
 const grainPerSoldier = animalPerSoldier + weatPerSoldier;
+
+// Get all building amounts for a given soldiersPerMinute value
+export const getAllBuildingAmountsFromT3PerMinute = (
+  soldiersPerMinute: number
+) => ({
+  grainFarms: getBuildingAmountFromT3PerMinute("grainFarm", soldiersPerMinute),
+  animalFarms: getBuildingAmountFromT3PerMinute(
+    "animalFarm",
+    soldiersPerMinute
+  ),
+  waterworks: getBuildingAmountFromT3PerMinute("waterworks", soldiersPerMinute),
+  mills: getBuildingAmountFromT3PerMinute("mill", soldiersPerMinute),
+  bakeries: getBuildingAmountFromT3PerMinute("bakery", soldiersPerMinute),
+  butchers: getBuildingAmountFromT3PerMinute("butcher", soldiersPerMinute),
+  coalMines: getBuildingAmountFromT3PerMinute("coalMine", soldiersPerMinute),
+  ironMines: getBuildingAmountFromT3PerMinute("ironMine", soldiersPerMinute),
+  goldMines: getBuildingAmountFromT3PerMinute("goldMine", soldiersPerMinute),
+  goldSmelts: getBuildingAmountFromT3PerMinute("goldSmelt", soldiersPerMinute),
+  ironSmelts: getBuildingAmountFromT3PerMinute("ironSmelt", soldiersPerMinute),
+  weaponSmiths: getBuildingAmountFromT3PerMinute(
+    "weaponSmith",
+    soldiersPerMinute
+  ),
+});
