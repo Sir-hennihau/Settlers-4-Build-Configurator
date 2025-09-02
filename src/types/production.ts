@@ -24,12 +24,27 @@ export interface ProductionRule {
 
 export type ProductionChain = ProductionRule[];
 
-export interface CivilizationProductionRate {
-  [buildingGerman: string]: {
-    in: number;
-    out: number;
-  };
-}
+export type Building =
+  | "grainFarm"
+  | "mill"
+  | "bakery"
+  | "animalFarm"
+  | "butcher"
+  | "waterworks"
+  | "coalMine"
+  | "ironMine"
+  | "goldMine"
+  | "goldSmelt"
+  | "ironSmelt"
+  | "weaponSmith";
+
+export type CivilizationProductionRate = Record<
+  Building,
+  {
+    in: { resource: Resource; amount: number }[];
+    out: { resource: Resource; amount: number };
+  }
+>;
 
 export interface CivilizationsConfig {
   [civName: string]: CivilizationProductionRate;
