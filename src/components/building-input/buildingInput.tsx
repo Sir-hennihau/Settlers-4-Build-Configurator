@@ -1,4 +1,5 @@
 import {
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -9,72 +10,214 @@ import {
 } from "@mui/material";
 import { Container } from "@mui/system";
 import { ChangeEvent, useEffect, useState } from "react";
-import { BUILDINGS } from "../../data/buildings";
-import { setSoldiersPerMinute } from "../../store/config-store/configSlice";
-import { useAppDispatch } from "../../store/hooks";
-import { Building } from "../../types/building";
+import {
+  getT3SolderProductionPerMinutePerResourceType,
+  getAllBuildingAmountsFromT3PerMinute,
+  useAppDispatch,
+  useAppSelector,
+  getToolSmithAndStoneMineRequirements,
+} from "../../store/hooks";
+import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
+import {
+  setSoldiersPerMinute,
+  selectConfig,
+} from "../../store/config-store/configSlice";
+import { Resource } from "../../types/production";
 
+/** Mapping from building display labels to their produced resources */
+
+const BUILDING_RESOURCE_MAP: {
+  label: string;
+  resource: Resource;
+  icon?: React.ReactNode;
+}[] = [
+  { label: "Grain Farm", resource: "grain" },
+  { label: "Animal Ranch", resource: "animal" },
+  { label: "Waterworks", resource: "water" },
+  { label: "Mill", resource: "weat" },
+  { label: "Bakery", resource: "bread" },
+  { label: "Butcher", resource: "meat" },
+  { label: "Coal Mine", resource: "coal" },
+  { label: "Iron Mine", resource: "ironOre" },
+  { label: "Gold Mine", resource: "goldOre" },
+  {
+    label: "Stone Mine",
+    resource: "stone",
+    icon: "Add stone mines (optional)",
+  },
+  { label: "Iron Smelting Works", resource: "ironBar" },
+  { label: "Weaponsmith's Works", resource: "weapon" },
+  { label: "Gold Smelting Works", resource: "goldBar" },
+];
+
+/**
+ * Component for selecting building type and amount to calculate production requirements
+ * Updates soldiers per minute and building requirements based on user input
+ */
 export const BuildingInput = () => {
-  // --- STATE ---
-
   const dispatch = useAppDispatch();
-
+  const { selectedCivilization } = useAppSelector(selectConfig);
   const [buildingAmount, setBuildingAmount] = useState(1);
-  const [selectedBuilding, setSelectedBuilding] = useState(
-    JSON.stringify(BUILDINGS[0])
+  const [selectedResource, setSelectedResource] = useState<Resource>("grain");
+  const [showStoneMineInput, setShowStoneMineInput] = useState(false);
+  const [stoneMineAmount, setStoneMineAmount] = useState<number>(0);
+  const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(1);
+  const [isSufficient, setIsSufficient] = useState<boolean>(true);
+
+  getToolSmithAndStoneMineRequirements(
+    toolSmithsAmount,
+    stoneMineAmount,
+    selectedCivilization
   );
 
-  // --- EFFECTS ---
-
   useEffect(() => {
-    const parsedSelectedBuilding = JSON.parse(selectedBuilding) as Building;
-
-    const newSoldiersPerMinute =
-      buildingAmount / parsedSelectedBuilding.multiplier;
-    dispatch(setSoldiersPerMinute(newSoldiersPerMinute));
-  }, [selectedBuilding, buildingAmount, dispatch]);
-
-  // --- CALLBACKS ---
+    const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
+      selectedResource,
+      buildingAmount,
+      selectedCivilization,
+      stoneMineAmount,
+      toolSmithsAmount
+    );
+    setIsSufficient(soldiersPerMinute?.isSufficient || false);
+    const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
+      soldiersPerMinute?.amount || 0,
+      selectedCivilization,
+      stoneMineAmount,
+      toolSmithsAmount
+    );
+    if (typeof stoneMineAmount === "number") {
+      allBuildingsConfig.stoneMines = stoneMineAmount;
+    }
+    dispatch(setSoldiersPerMinute(soldiersPerMinute?.amount || 0));
+    dispatch(setBuildingRequirements(allBuildingsConfig));
+  }, [
+    selectedResource,
+    buildingAmount,
+    selectedCivilization,
+    stoneMineAmount,
+    dispatch,
+    toolSmithsAmount,
+  ]);
 
   const onInputChange = (event: SelectChangeEvent) => {
-    setSelectedBuilding(event.target.value);
+    const selectedBuilding = BUILDING_RESOURCE_MAP.find(
+      (building) => building.label === event.target.value
+    );
+    if (selectedBuilding) {
+      setSelectedResource(selectedBuilding.resource);
+    }
   };
 
   const onBuildingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newBuildingAmount = Number(event.target.value);
-    if (!Number.isInteger(newBuildingAmount)) return;
-
-    setBuildingAmount(newBuildingAmount);
+    if (newBuildingAmount >= 0) {
+      setBuildingAmount(newBuildingAmount);
+    }
   };
 
-  // --- RENDER ---
+  const selectedBuilding = BUILDING_RESOURCE_MAP.find(
+    (building) => building.resource === selectedResource
+  );
 
   return (
     <Container>
-      <Stack sx={{ flexDirection: "row" }}>
-        <FormControl fullWidth>
-          <InputLabel>Building</InputLabel>
-          <Select
-            value={selectedBuilding}
-            label="Building"
-            onChange={onInputChange}
-          >
-            {BUILDINGS.map((building) => (
-              <MenuItem key={building.label} value={JSON.stringify(building)}>
-                {building.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <Stack sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+        <Stack
+          sx={{ flexDirection: "row", alignItems: "center", width: "100%" }}
+        >
+          <FormControl sx={{ width: "62%" }}>
+            <InputLabel>Building</InputLabel>
+            <Select
+              value={selectedBuilding?.label || ""}
+              label="Building"
+              onChange={onInputChange}
+              error={!isSufficient}
+            >
+              {BUILDING_RESOURCE_MAP.map((building) => (
+                <MenuItem key={building.label} value={building.label}>
+                  {building.icon && (
+                    <span style={{ verticalAlign: "middle", marginRight: 6 }}>
+                      {building.icon}
+                    </span>
+                  )}
+                  {building.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <TextField
-          id="outlined-basic"
-          label="Amount"
-          onChange={onBuildingAmountChange}
-          sx={{ marginLeft: 2 }}
-          variant="outlined"
-          value={buildingAmount}
-        />
+          <TextField
+            id="outlined-basic"
+            label="Amount"
+            onChange={onBuildingAmountChange}
+            sx={{ marginLeft: 2 }}
+            variant="outlined"
+            value={buildingAmount}
+            type="number"
+            error={!isSufficient}
+          />
+        </Stack>
+        <Stack
+          sx={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 2,
+            width: "100%",
+          }}
+        >
+          <TextField
+            id="toolsmiths-amount"
+            label="Toolsmiths"
+            onChange={(e) => setToolSmithsAmount(Number(e.target.value))}
+            sx={{ width: "58%" }}
+            variant="outlined"
+            value={toolSmithsAmount}
+            type="number"
+            inputProps={{ min: 0 }}
+          />
+        </Stack>
+
+        <Stack
+          sx={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 2,
+            width: "100%",
+          }}
+        >
+          {showStoneMineInput && (
+            <TextField
+              id="stone-mine-amount"
+              label="Stone Mines"
+              onChange={(e) => setStoneMineAmount(Number(e.target.value))}
+              sx={{ marginRight: 2, width: "60%" }}
+              variant="outlined"
+              value={stoneMineAmount ?? ""}
+              type="number"
+              inputProps={{ min: 0 }}
+            />
+          )}
+          <Button
+            style={{
+              padding: "6px 12px",
+              borderRadius: 4,
+              border: "1px solid #ccc",
+              background: "#f5f5f5",
+              cursor: "pointer",
+              color: "GrayText",
+            }}
+            onClick={() => {
+              if (showStoneMineInput) {
+                setStoneMineAmount(0);
+              }
+              setShowStoneMineInput((v) => !v);
+            }}
+          >
+            {showStoneMineInput
+              ? "Hide stone mines input"
+              : "Add stone mines (optional)"}
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );
