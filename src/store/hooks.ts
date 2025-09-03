@@ -9,6 +9,59 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 /** Type-safe selector hook for Redux state */
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+export const getToolSmithAndStoneMineRequirements = (
+  toolSmithAmount: number,
+  stoneMineAmount: number,
+  civilization: string | undefined
+) => {
+  const civConfig = civilization
+    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+    : civilizationsConfig.romans;
+
+  const { bakeries, grainFarms, mills, waterworks } = getStoneMineRequirements(
+    stoneMineAmount,
+    civilization
+  );
+  // TODO: Add toolsmith
+
+  return {
+    bakeries,
+    mills,
+    waterworks,
+    grainFarms,
+  };
+};
+
+const getStoneMineRequirements = (
+  stoneMineAmount: number,
+  civilization: string | undefined
+) => {
+  const civConfig = civilization
+    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+    : civilizationsConfig.romans;
+
+  const bakeries =
+    (stoneMineAmount * civConfig.stoneMine.in) / civConfig.bakery.out;
+
+  const mills = (bakeries * civConfig.bakery.out) / civConfig.mill.out;
+
+  const waterworks =
+    (bakeries * civConfig.bakery.out) / civConfig.waterworks.out;
+
+  const grainFarms =
+    (bakeries * civConfig.bakery.out) / civConfig.grainFarm.out;
+  console.log("bakeries asd", bakeries);
+  console.log("mills", mills);
+  console.log("waterworks", waterworks);
+  console.log("grainFarms", grainFarms);
+  return {
+    bakeries,
+    mills,
+    waterworks,
+    grainFarms,
+  };
+};
+
 /**
  * Calculates T3 soldier production per minute based on resource type, amount, and civilization
  * @param resource - The resource type being produced
@@ -19,8 +72,17 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export const getT3SolderProductionPerMinutePerResourceType = (
   resource: Resource,
   amount: number,
-  civilization?: string
+  civilization?: string,
+  stoneMineAmount = 0,
+  toolSmithAmount = 0
 ) => {
+  const { bakeries, mills, waterworks, grainFarms } =
+    getToolSmithAndStoneMineRequirements(
+      toolSmithAmount,
+      stoneMineAmount,
+      civilization
+    );
+
   const civConfig = civilization
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
@@ -38,47 +100,96 @@ export const getT3SolderProductionPerMinutePerResourceType = (
     (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
   const animalPerSoldier = meatPerSoldier;
   const weatPerSoldier = breadPerSoldier;
-  const waterPerSoldier = meatPerSoldier + weatPerSoldier;
+
   const grainPerSoldier =
     (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
     weatPerSoldier;
+  const waterPerSoldier = grainPerSoldier;
 
   switch (resource) {
     case "coal":
-      return (civConfig.coalMine.out / coalPerSoldier) * amount;
+      return {
+        amount: (civConfig.coalMine.out / coalPerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "ironOre":
-      return (civConfig.ironMine.out / ironOrePerSoldier) * amount;
+      return {
+        amount: (civConfig.ironMine.out / ironOrePerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "goldOre":
-      return (civConfig.goldMine.out / goldOrePerSoldier) * amount;
+      return {
+        amount: (civConfig.goldMine.out / goldOrePerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "ironBar":
-      return (civConfig.ironSmelt.out / ironBarsPerSoldier) * amount;
+      return {
+        amount: (civConfig.ironSmelt.out / ironBarsPerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "goldBar":
-      return (civConfig.goldSmelt.out / goldBarsPerSoldier) * amount;
+      return {
+        amount: (civConfig.goldSmelt.out / goldBarsPerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "weapon":
-      return (civConfig.weaponSmith.out / weaponsPerSoldier) * amount;
+      return {
+        amount: (civConfig.weaponSmith.out / weaponsPerSoldier) * amount,
+        isSufficient: true,
+      };
 
     case "meat":
-      return (civConfig.butcher.out / meatPerSoldier) * amount;
+      return {
+        amount: (civConfig.butcher.out / meatPerSoldier) * amount,
+        isSufficient: true,
+      };
 
-    case "bread":
-      return (civConfig.bakery.out / breadPerSoldier) * amount;
+    case "bread": {
+      const dynamicAmount = amount - bakeries;
+      console.log("dynamicAmount", dynamicAmount);
+      return {
+        amount: (civConfig.bakery.out / breadPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
+      };
+    }
 
     case "animal":
-      return (civConfig.animalFarm.out / animalPerSoldier) * amount;
+      return {
+        amount: (civConfig.animalFarm.out / animalPerSoldier) * amount,
+        isSufficient: true,
+      };
 
-    case "weat":
-      return (civConfig.mill.out / weatPerSoldier) * amount;
+    case "weat": {
+      const dynamicAmount = amount - mills;
+      console.log("dynamicAmount", dynamicAmount);
+      return {
+        amount: (civConfig.mill.out / weatPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
+      };
+    }
 
-    case "grain":
-      return (civConfig.grainFarm.out / grainPerSoldier) * amount;
+    case "grain": {
+      const dynamicAmount = amount - grainFarms;
+      console.log("dynamicAmount", dynamicAmount);
+      return {
+        amount: (civConfig.grainFarm.out / grainPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
+      };
+    }
 
-    case "water":
-      return (civConfig.waterworks.out / waterPerSoldier) * amount;
+    case "water": {
+      const dynamicAmount = amount - waterworks;
+      console.log("dynamicAmount", dynamicAmount);
+      return {
+        amount: (civConfig.waterworks.out / waterPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
+      };
+    }
   }
 };
 

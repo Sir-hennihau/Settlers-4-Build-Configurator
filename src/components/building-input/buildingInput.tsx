@@ -1,4 +1,5 @@
 import {
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -14,6 +15,7 @@ import {
   getAllBuildingAmountsFromT3PerMinute,
   useAppDispatch,
   useAppSelector,
+  getToolSmithAndStoneMineRequirements,
 } from "../../store/hooks";
 import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
 import {
@@ -58,17 +60,27 @@ export const BuildingInput = () => {
   const [buildingAmount, setBuildingAmount] = useState(1);
   const [selectedResource, setSelectedResource] = useState<Resource>("grain");
   const [showStoneMineInput, setShowStoneMineInput] = useState(false);
-  const [stoneMineAmount, setStoneMineAmount] = useState<number | undefined>();
+  const [stoneMineAmount, setStoneMineAmount] = useState<number>(0);
   const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(0);
+  const [isSufficient, setIsSufficient] = useState<boolean>(true);
+
+  getToolSmithAndStoneMineRequirements(
+    toolSmithsAmount,
+    stoneMineAmount,
+    selectedCivilization
+  );
 
   useEffect(() => {
     const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
       selectedResource,
       buildingAmount,
-      selectedCivilization
+      selectedCivilization,
+      stoneMineAmount,
+      toolSmithsAmount
     );
+    setIsSufficient(soldiersPerMinute?.isSufficient || false);
     const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
-      soldiersPerMinute || 0,
+      soldiersPerMinute?.amount || 0,
       selectedCivilization,
       stoneMineAmount,
       toolSmithsAmount
@@ -76,7 +88,7 @@ export const BuildingInput = () => {
     if (typeof stoneMineAmount === "number") {
       allBuildingsConfig.stoneMines = stoneMineAmount;
     }
-    dispatch(setSoldiersPerMinute(soldiersPerMinute || 0));
+    dispatch(setSoldiersPerMinute(soldiersPerMinute?.amount || 0));
     dispatch(setBuildingRequirements(allBuildingsConfig));
   }, [
     selectedResource,
@@ -119,6 +131,7 @@ export const BuildingInput = () => {
               value={selectedBuilding?.label || ""}
               label="Building"
               onChange={onInputChange}
+              error={!isSufficient}
             >
               {BUILDING_RESOURCE_MAP.map((building) => (
                 <MenuItem key={building.label} value={building.label}>
@@ -141,6 +154,7 @@ export const BuildingInput = () => {
             variant="outlined"
             value={buildingAmount}
             type="number"
+            error={!isSufficient}
           />
         </Stack>
         <Stack
@@ -161,7 +175,29 @@ export const BuildingInput = () => {
             type="number"
             inputProps={{ min: 0 }}
           />
-          <button
+        </Stack>
+
+        <Stack
+          sx={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 2,
+            width: "100%",
+          }}
+        >
+          {showStoneMineInput && (
+            <TextField
+              id="stone-mine-amount"
+              label="Stone Mines"
+              onChange={(e) => setStoneMineAmount(Number(e.target.value))}
+              sx={{ marginRight: 2 }}
+              variant="outlined"
+              value={stoneMineAmount ?? ""}
+              type="number"
+              inputProps={{ min: 0 }}
+            />
+          )}
+          <Button
             style={{
               padding: "6px 12px",
               borderRadius: 4,
@@ -179,19 +215,7 @@ export const BuildingInput = () => {
             {showStoneMineInput
               ? "Hide stone mines input"
               : "Add stone mines (optional)"}
-          </button>
-          {showStoneMineInput && (
-            <TextField
-              id="stone-mine-amount"
-              label="Stone Mines"
-              onChange={(e) => setStoneMineAmount(Number(e.target.value))}
-              sx={{ marginLeft: 2 }}
-              variant="outlined"
-              value={stoneMineAmount ?? ""}
-              type="number"
-              inputProps={{ min: 0 }}
-            />
-          )}
+          </Button>
         </Stack>
       </Stack>
     </Container>
