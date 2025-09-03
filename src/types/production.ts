@@ -30,7 +30,8 @@ export type Building =
   | "stoneMine"
   | "goldSmelt"
   | "ironSmelt"
-  | "weaponSmith";
+  | "weaponSmith"
+  | "toolSmith";
 
 /** Production rate configuration for a single civilization */
 export type CivilizationProductionRate = Record<

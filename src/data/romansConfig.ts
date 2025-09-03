@@ -15,4 +15,8 @@ export const romansProductionConfig: CivilizationProductionRate = {
   goldSmelt: { in: 2.807, out: 2.807 },
   ironSmelt: { in: 2.986, out: 2.986 },
   weaponSmith: { in: 2.167, out: 2.167 },
+  toolSmith: {
+    in: 2.744,
+    out: 2.744,
+  },
 };

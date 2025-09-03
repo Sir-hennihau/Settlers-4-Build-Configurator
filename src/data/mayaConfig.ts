@@ -51,4 +51,8 @@ export const mayaProductionConfig: CivilizationProductionRate = {
     in: 2.002,
     out: 2.002,
   },
+  toolSmith: {
+    in: 2.241,
+    out: 2.241,
+  },
 };

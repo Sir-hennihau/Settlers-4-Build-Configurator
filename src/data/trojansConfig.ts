@@ -50,4 +50,8 @@ export const trojansProductionConfig: CivilizationProductionRate = {
     in: 2.247,
     out: 2.247,
   },
+  toolSmith: {
+    in: 2.632,
+    out: 2.632,
+  },
 };

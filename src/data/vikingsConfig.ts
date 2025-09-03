@@ -15,4 +15,8 @@ export const vikingsProductionConfig: CivilizationProductionRate = {
   goldSmelt: { in: 3.029, out: 3.029 },
   ironSmelt: { in: 3.107, out: 3.107 },
   weaponSmith: { in: 2.592, out: 2.592 },
+  toolSmith: {
+    in: 2.904,
+    out: 2.904,
+  },
 };

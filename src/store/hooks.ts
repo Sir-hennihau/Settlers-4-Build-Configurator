@@ -51,7 +51,7 @@ export const getT3SolderProductionPerMinutePerResourceType = (
       return (civConfig.ironMine.out / ironOrePerSoldier) * amount;
 
     case "goldOre":
-      return (civConfig.goldMine.out / goldBarsPerSoldier) * amount;
+      return (civConfig.goldMine.out / goldOrePerSoldier) * amount;
 
     case "ironBar":
       return (civConfig.ironSmelt.out / ironBarsPerSoldier) * amount;
@@ -93,13 +93,13 @@ const getBuildingAmountFromT3PerMinute = (
   building: Building,
   t3pm: number,
   civilization?: string,
-  stoneMineAmount = 0
+  stoneMineAmount = 0,
+  toolSmithsAmount = 0
 ) => {
   const civConfig = civilization
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
 
-  // Calculate resource requirements for this civilization
   const coalPerSoldier = 4;
   const ironOrePerSoldier = 1;
   const goldOrePerSoldier = 2;
@@ -107,57 +107,90 @@ const getBuildingAmountFromT3PerMinute = (
   const goldBarsPerSoldier = 2;
   const weaponsPerSoldier = 1;
 
-  console.log(
-    "    stoneMineAmount * civConfig.stoneMine.in * civConfig.bakery.out;",
-    stoneMineAmount * civConfig.stoneMine.in * civConfig.bakery.out
-  );
+  const coalPerTool = 2;
 
-  const meatPerSoldier = civConfig.ironMine.in / civConfig.ironMine.out;
-  const breadPerSoldier =
+  const meatRequirement = civConfig.ironMine.in / civConfig.ironMine.out;
+  const breadRequirementT3 =
     (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerSoldier;
-  const animalPerSoldier = meatPerSoldier;
-  const weatPerSoldier = breadPerSoldier;
-  const grainPerSoldier =
-    (meatPerSoldier * civConfig.animalFarm.in) / civConfig.animalFarm.out +
-    weatPerSoldier;
-  const waterPerSoldier = grainPerSoldier;
+  const breadRequirementTool =
+    (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerTool;
+  const animalRequirement = meatRequirement;
+  const wheatRequirementT3 = breadRequirementT3;
+  const wheatRequirementTool = breadRequirementTool;
+  const grainRequirementT3 =
+    (meatRequirement * civConfig.animalFarm.in) / civConfig.animalFarm.out +
+    wheatRequirementT3;
+  const grainRequirementTool = wheatRequirementTool;
+  const waterRequirementT3 = grainRequirementT3;
+  const waterRequirementTool = grainRequirementTool;
 
   switch (building) {
     case "grainFarm":
       return (
-        (t3pm * grainPerSoldier) / civConfig.grainFarm.out +
-        (stoneMineAmount * civConfig.stoneMine.in) / civConfig.grainFarm.out
+        (t3pm * grainRequirementT3) / civConfig.grainFarm.out +
+        toolSmithsAmount *
+          grainRequirementTool *
+          (civConfig.toolSmith.in / civConfig.grainFarm.out) +
+        +(stoneMineAmount * civConfig.stoneMine.in) / civConfig.grainFarm.out
       );
     case "waterworks":
       return (
-        (t3pm * waterPerSoldier) / civConfig.waterworks.out +
-        (stoneMineAmount * civConfig.stoneMine.in) / civConfig.waterworks.out
+        (t3pm * waterRequirementT3) / civConfig.waterworks.out +
+        toolSmithsAmount *
+          waterRequirementTool *
+          (civConfig.toolSmith.in / civConfig.waterworks.out) +
+        +(stoneMineAmount * civConfig.stoneMine.in) / civConfig.waterworks.out
       );
     case "mill":
       return (
-        (t3pm * weatPerSoldier) / civConfig.mill.out +
-        (stoneMineAmount * civConfig.stoneMine.in) / civConfig.mill.out
+        (t3pm * wheatRequirementT3) / civConfig.mill.out +
+        toolSmithsAmount *
+          wheatRequirementTool *
+          (civConfig.toolSmith.in / civConfig.mill.out) +
+        +(stoneMineAmount * civConfig.stoneMine.in) / civConfig.mill.out
       );
     case "bakery":
       return (
-        (t3pm * breadPerSoldier) / civConfig.bakery.out +
+        (t3pm * breadRequirementT3) / civConfig.bakery.out +
+        toolSmithsAmount *
+          breadRequirementTool *
+          (civConfig.toolSmith.in / civConfig.bakery.out) +
         (stoneMineAmount * civConfig.stoneMine.in) / civConfig.bakery.out
       );
     case "animalFarm":
-      return (t3pm * animalPerSoldier) / civConfig.animalFarm.out;
+      return (
+        (t3pm * animalRequirement) / civConfig.animalFarm.out +
+        (toolSmithsAmount * animalRequirement * civConfig.toolSmith.in) /
+          civConfig.animalFarm.out
+      );
     case "butcher":
-      return (t3pm * meatPerSoldier) / civConfig.butcher.out;
+      return (
+        (t3pm * meatRequirement) / civConfig.butcher.out +
+        (toolSmithsAmount * meatRequirement * civConfig.toolSmith.in) /
+          civConfig.butcher.out
+      );
 
     case "coalMine":
-      return (t3pm * coalPerSoldier) / civConfig.coalMine.out;
+      return (
+        (t3pm * coalPerSoldier) / civConfig.coalMine.out +
+        toolSmithsAmount *
+          coalPerTool *
+          (civConfig.toolSmith.in / civConfig.coalMine.out)
+      );
     case "ironMine":
-      return (t3pm * ironOrePerSoldier) / civConfig.ironMine.out;
+      return (
+        (t3pm * ironOrePerSoldier) / civConfig.ironMine.out +
+        toolSmithsAmount * (civConfig.toolSmith.in / civConfig.ironMine.out)
+      );
     case "goldMine":
       return (t3pm * goldOrePerSoldier) / civConfig.goldMine.out;
     case "goldSmelt":
       return (t3pm * goldBarsPerSoldier) / civConfig.goldSmelt.out;
     case "ironSmelt":
-      return (t3pm * ironBarsPerSoldier) / civConfig.ironSmelt.out;
+      return (
+        (t3pm * ironBarsPerSoldier) / civConfig.ironSmelt.out +
+        (toolSmithsAmount * civConfig.toolSmith.in) / civConfig.ironSmelt.out
+      );
     case "weaponSmith":
       return (t3pm * weaponsPerSoldier) / civConfig.weaponSmith.out;
     default:
@@ -174,63 +207,73 @@ const getBuildingAmountFromT3PerMinute = (
 export const getAllBuildingAmountsFromT3PerMinute = (
   soldiersPerMinute: number,
   civilization?: string,
-  stoneMineAmount = 0
+  stoneMineAmount = 0,
+  toolSmithsAmount = 0
 ) => ({
   grainFarms: getBuildingAmountFromT3PerMinute(
     "grainFarm",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
 
   waterworks: getBuildingAmountFromT3PerMinute(
     "waterworks",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
 
   mills: getBuildingAmountFromT3PerMinute(
     "mill",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   animalFarms: getBuildingAmountFromT3PerMinute(
     "animalFarm",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   bakeries: getBuildingAmountFromT3PerMinute(
     "bakery",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   butchers: getBuildingAmountFromT3PerMinute(
     "butcher",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   coalMines: getBuildingAmountFromT3PerMinute(
     "coalMine",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   ironMines: getBuildingAmountFromT3PerMinute(
     "ironMine",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   goldMines: getBuildingAmountFromT3PerMinute(
     "goldMine",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   stoneMines: 0,
 
@@ -238,18 +281,22 @@ export const getAllBuildingAmountsFromT3PerMinute = (
     "ironSmelt",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   weaponSmiths: getBuildingAmountFromT3PerMinute(
     "weaponSmith",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
   goldSmelts: getBuildingAmountFromT3PerMinute(
     "goldSmelt",
     soldiersPerMinute,
     civilization,
-    stoneMineAmount
+    stoneMineAmount,
+    toolSmithsAmount
   ),
+  toolSmiths: toolSmithsAmount,
 });

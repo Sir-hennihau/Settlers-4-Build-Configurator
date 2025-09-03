@@ -59,6 +59,7 @@ export const BuildingInput = () => {
   const [selectedResource, setSelectedResource] = useState<Resource>("grain");
   const [showStoneMineInput, setShowStoneMineInput] = useState(false);
   const [stoneMineAmount, setStoneMineAmount] = useState<number | undefined>();
+  const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(0);
 
   useEffect(() => {
     const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
@@ -69,7 +70,8 @@ export const BuildingInput = () => {
     const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
       soldiersPerMinute || 0,
       selectedCivilization,
-      stoneMineAmount
+      stoneMineAmount,
+      toolSmithsAmount
     );
     if (typeof stoneMineAmount === "number") {
       allBuildingsConfig.stoneMines = stoneMineAmount;
@@ -82,6 +84,7 @@ export const BuildingInput = () => {
     selectedCivilization,
     stoneMineAmount,
     dispatch,
+    toolSmithsAmount,
   ]);
 
   const onInputChange = (event: SelectChangeEvent) => {
@@ -106,69 +109,90 @@ export const BuildingInput = () => {
 
   return (
     <Container>
-      <Stack sx={{ flexDirection: "row", alignItems: "center" }}>
-        <FormControl fullWidth>
-          <InputLabel>Building</InputLabel>
-          <Select
-            value={selectedBuilding?.label || ""}
-            label="Building"
-            onChange={onInputChange}
-          >
-            {BUILDING_RESOURCE_MAP.map((building) => (
-              <MenuItem key={building.label} value={building.label}>
-                {building.icon && (
-                  <span style={{ verticalAlign: "middle", marginRight: 6 }}>
-                    {building.icon}
-                  </span>
-                )}
-                {building.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          id="outlined-basic"
-          label="Amount"
-          onChange={onBuildingAmountChange}
-          sx={{ marginLeft: 2 }}
-          variant="outlined"
-          value={buildingAmount}
-          type="number"
-        />
-
-        <button
-          style={{
-            marginLeft: 16,
-            padding: "6px 12px",
-            borderRadius: 4,
-            border: "1px solid #ccc",
-            background: "#f5f5f5",
-            cursor: "pointer",
-          }}
-          onClick={() => {
-            if (showStoneMineInput) {
-              setStoneMineAmount(0);
-            }
-            setShowStoneMineInput((v) => !v);
-          }}
+      <Stack sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+        <Stack
+          sx={{ flexDirection: "row", alignItems: "center", width: "100%" }}
         >
-          {showStoneMineInput
-            ? "Hide stone mines input"
-            : "Add stone mines (optional)"}
-        </button>
-        {showStoneMineInput && (
+          <FormControl fullWidth>
+            <InputLabel>Building</InputLabel>
+            <Select
+              value={selectedBuilding?.label || ""}
+              label="Building"
+              onChange={onInputChange}
+            >
+              {BUILDING_RESOURCE_MAP.map((building) => (
+                <MenuItem key={building.label} value={building.label}>
+                  {building.icon && (
+                    <span style={{ verticalAlign: "middle", marginRight: 6 }}>
+                      {building.icon}
+                    </span>
+                  )}
+                  {building.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
-            id="stone-mine-amount"
-            label="Stone Mines"
-            onChange={(e) => setStoneMineAmount(Number(e.target.value))}
+            id="outlined-basic"
+            label="Amount"
+            onChange={onBuildingAmountChange}
             sx={{ marginLeft: 2 }}
             variant="outlined"
-            value={stoneMineAmount ?? ""}
+            value={buildingAmount}
+            type="number"
+          />
+        </Stack>
+        <Stack
+          sx={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 2,
+            width: "100%",
+          }}
+        >
+          <TextField
+            id="toolsmiths-amount"
+            label="Toolsmiths"
+            onChange={(e) => setToolSmithsAmount(Number(e.target.value))}
+            sx={{ marginRight: 2 }}
+            variant="outlined"
+            value={toolSmithsAmount}
             type="number"
             inputProps={{ min: 0 }}
           />
-        )}
+          <button
+            style={{
+              padding: "6px 12px",
+              borderRadius: 4,
+              border: "1px solid #ccc",
+              background: "#f5f5f5",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              if (showStoneMineInput) {
+                setStoneMineAmount(0);
+              }
+              setShowStoneMineInput((v) => !v);
+            }}
+          >
+            {showStoneMineInput
+              ? "Hide stone mines input"
+              : "Add stone mines (optional)"}
+          </button>
+          {showStoneMineInput && (
+            <TextField
+              id="stone-mine-amount"
+              label="Stone Mines"
+              onChange={(e) => setStoneMineAmount(Number(e.target.value))}
+              sx={{ marginLeft: 2 }}
+              variant="outlined"
+              value={stoneMineAmount ?? ""}
+              type="number"
+              inputProps={{ min: 0 }}
+            />
+          )}
+        </Stack>
       </Stack>
     </Container>
   );

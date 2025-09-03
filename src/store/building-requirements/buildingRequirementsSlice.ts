@@ -16,6 +16,7 @@ export interface BuildingRequirementsState {
   goldSmelts: number;
   ironSmelts: number;
   weaponSmiths: number;
+  toolSmiths: number;
 }
 
 const initialState: BuildingRequirementsState = {
@@ -32,6 +33,7 @@ const initialState: BuildingRequirementsState = {
   goldSmelts: 0,
   ironSmelts: 0,
   weaponSmiths: 0,
+  toolSmiths: 1,
 };
 
 /**
