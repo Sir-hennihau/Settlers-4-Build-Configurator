@@ -61,7 +61,7 @@ export const BuildingInput = () => {
   const [selectedResource, setSelectedResource] = useState<Resource>("grain");
   const [showStoneMineInput, setShowStoneMineInput] = useState(false);
   const [stoneMineAmount, setStoneMineAmount] = useState<number>(0);
-  const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(0);
+  const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(1);
   const [isSufficient, setIsSufficient] = useState<boolean>(true);
 
   getToolSmithAndStoneMineRequirements(
@@ -125,7 +125,7 @@ export const BuildingInput = () => {
         <Stack
           sx={{ flexDirection: "row", alignItems: "center", width: "100%" }}
         >
-          <FormControl fullWidth>
+          <FormControl sx={{ width: "62%" }}>
             <InputLabel>Building</InputLabel>
             <Select
               value={selectedBuilding?.label || ""}
@@ -169,7 +169,7 @@ export const BuildingInput = () => {
             id="toolsmiths-amount"
             label="Toolsmiths"
             onChange={(e) => setToolSmithsAmount(Number(e.target.value))}
-            sx={{ marginRight: 2 }}
+            sx={{ width: "58%" }}
             variant="outlined"
             value={toolSmithsAmount}
             type="number"
@@ -190,7 +190,7 @@ export const BuildingInput = () => {
               id="stone-mine-amount"
               label="Stone Mines"
               onChange={(e) => setStoneMineAmount(Number(e.target.value))}
-              sx={{ marginRight: 2 }}
+              sx={{ marginRight: 2, width: "60%" }}
               variant="outlined"
               value={stoneMineAmount ?? ""}
               type="number"
@@ -204,6 +204,7 @@ export const BuildingInput = () => {
               border: "1px solid #ccc",
               background: "#f5f5f5",
               cursor: "pointer",
+              color: "GrayText",
             }}
             onClick={() => {
               if (showStoneMineInput) {

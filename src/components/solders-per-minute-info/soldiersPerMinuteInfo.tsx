@@ -18,7 +18,7 @@ export const SoldiersPerMinuteInfo = () => {
         <Grid item sx={{ fontWeight: "bold" }} xs={8}>
           T3 Soldiers per minute
         </Grid>
-        <Grid item sx={{ fontWeight: "bold" }} xs={4}>
+        <Grid item sx={{ fontWeight: "bold", textAlign: "right" }} xs={4}>
           {soldiersPerMinuteString}
         </Grid>
       </Grid>

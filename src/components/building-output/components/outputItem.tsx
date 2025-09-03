@@ -18,7 +18,7 @@ export const OutputItem = ({ building }: OutputItemProps) => {
       <Grid item xs={8}>
         {building.label}
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={4} textAlign={"right"}>
         {buildingAmountString}
       </Grid>
     </>

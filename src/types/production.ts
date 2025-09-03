@@ -14,7 +14,8 @@ export type Resource =
   | "goldOre"
   | "goldBar"
   | "fish"
-  | "soldierT3";
+  | "soldierT3"
+  | "toolSmiths";
 
 /** Available building types */
 export type Building =

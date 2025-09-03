@@ -18,6 +18,7 @@ const BUILDING_DISPLAY_NAMES: { [key: string]: string } = {
   goldSmelts: "Gold Smelts",
   ironSmelts: "Iron Smelts",
   weaponSmiths: "Weapon Smiths",
+  toolSmiths: "Tool Smiths",
 };
 
 /**

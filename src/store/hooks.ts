@@ -18,16 +18,79 @@ export const getToolSmithAndStoneMineRequirements = (
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
 
-  const { bakeries, grainFarms, mills, waterworks } = getStoneMineRequirements(
+  const stoneMineRequirements = getStoneMineRequirements(
     stoneMineAmount,
     civilization
   );
-  // TODO: Add toolsmith
+  const toolSmithRequirements = getToolSmithRequirements(
+    toolSmithAmount,
+    civilization
+  );
 
   return {
+    bakeries: stoneMineRequirements.bakeries + toolSmithRequirements.bakeries,
+    mills: stoneMineRequirements.mills + toolSmithRequirements.mills,
+    waterworks:
+      stoneMineRequirements.waterworks + toolSmithRequirements.waterWorks,
+    grainFarms:
+      stoneMineRequirements.grainFarms + toolSmithRequirements.grainFarms,
+    ironSmelts: toolSmithRequirements.ironSmelts,
+    coalMines: toolSmithRequirements.coalMines,
+    ironMines: toolSmithRequirements.ironMines,
+    butchers: toolSmithRequirements.butchers,
+    animalFarms: toolSmithRequirements.animalFarms,
+  };
+};
+
+const getToolSmithRequirements = (
+  toolSmithAmount: number,
+  civilization: string | undefined
+) => {
+  const civConfig = civilization
+    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
+    : civilizationsConfig.romans;
+
+  const ironSmelts =
+    toolSmithAmount * (civConfig.toolSmith.in / civConfig.ironSmelt.out);
+  console.log("ironSmelts", ironSmelts);
+
+  const coalMines =
+    toolSmithAmount * ((civConfig.toolSmith.in * 2) / civConfig.coalMine.out);
+  console.log("coalMines", coalMines);
+  const ironMines =
+    toolSmithAmount * (civConfig.toolSmith.in / civConfig.ironMine.out);
+  console.log("ironMines", ironMines);
+
+  const bakeries = (coalMines * civConfig.coalMine.in) / civConfig.bakery.out;
+  console.log("bakeries", bakeries);
+  const mills = (bakeries * civConfig.bakery.out) / civConfig.mill.out;
+  console.log("mills", mills);
+
+  const butchers = (ironMines * civConfig.coalMine.in) / civConfig.butcher.out;
+  console.log("butchers", butchers);
+  const animalFarms =
+    (butchers * civConfig.butcher.out) / civConfig.animalFarm.out;
+  console.log("animalFarms", animalFarms);
+
+  const grainFarms =
+    (bakeries * civConfig.bakery.out) / civConfig.grainFarm.out +
+    (animalFarms * civConfig.animalFarm.in) / civConfig.grainFarm.out;
+  console.log("grainFarms for toolsmiths", grainFarms);
+
+  const waterWorks =
+    (bakeries * civConfig.bakery.out) / civConfig.waterworks.out +
+    (animalFarms * civConfig.animalFarm.in) / civConfig.waterworks.out;
+  console.log("waterWorks", waterWorks);
+
+  return {
+    ironSmelts,
+    coalMines,
+    ironMines,
     bakeries,
+    butchers,
+    animalFarms,
     mills,
-    waterworks,
+    waterWorks,
     grainFarms,
   };
 };
@@ -45,19 +108,19 @@ const getStoneMineRequirements = (
 
   const mills = (bakeries * civConfig.bakery.out) / civConfig.mill.out;
 
-  const waterworks =
+  const waterWorks =
     (bakeries * civConfig.bakery.out) / civConfig.waterworks.out;
 
   const grainFarms =
     (bakeries * civConfig.bakery.out) / civConfig.grainFarm.out;
-  console.log("bakeries asd", bakeries);
+  /*   console.log("bakeries asd", bakeries);
   console.log("mills", mills);
   console.log("waterworks", waterworks);
-  console.log("grainFarms", grainFarms);
+  console.log("grainFarms", grainFarms); */
   return {
     bakeries,
     mills,
-    waterworks,
+    waterworks: waterWorks,
     grainFarms,
   };
 };
@@ -76,18 +139,26 @@ export const getT3SolderProductionPerMinutePerResourceType = (
   stoneMineAmount = 0,
   toolSmithAmount = 0
 ) => {
-  const { bakeries, mills, waterworks, grainFarms } =
-    getToolSmithAndStoneMineRequirements(
-      toolSmithAmount,
-      stoneMineAmount,
-      civilization
-    );
+  const {
+    bakeries,
+    mills,
+    waterworks,
+    grainFarms,
+    ironMines,
+    ironSmelts,
+    coalMines,
+    butchers,
+    animalFarms,
+  } = getToolSmithAndStoneMineRequirements(
+    toolSmithAmount,
+    stoneMineAmount,
+    civilization
+  );
 
   const civConfig = civilization
     ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
     : civilizationsConfig.romans;
 
-  // Calculate resource requirements for this civilization
   const coalPerSoldier = 4;
   const ironOrePerSoldier = 1;
   const goldOrePerSoldier = 2;
@@ -107,17 +178,23 @@ export const getT3SolderProductionPerMinutePerResourceType = (
   const waterPerSoldier = grainPerSoldier;
 
   switch (resource) {
-    case "coal":
-      return {
-        amount: (civConfig.coalMine.out / coalPerSoldier) * amount,
-        isSufficient: true,
-      };
+    case "coal": {
+      const dynamicAmount = amount - coalMines;
 
-    case "ironOre":
       return {
-        amount: (civConfig.ironMine.out / ironOrePerSoldier) * amount,
-        isSufficient: true,
+        amount: (civConfig.coalMine.out / coalPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
       };
+    }
+
+    case "ironOre": {
+      const dynamicAmount = amount - ironMines;
+
+      return {
+        amount: (civConfig.ironMine.out / ironOrePerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
+      };
+    }
 
     case "goldOre":
       return {
@@ -125,11 +202,14 @@ export const getT3SolderProductionPerMinutePerResourceType = (
         isSufficient: true,
       };
 
-    case "ironBar":
+    case "ironBar": {
+      const dynamicAmount = amount - ironSmelts;
+
       return {
-        amount: (civConfig.ironSmelt.out / ironBarsPerSoldier) * amount,
-        isSufficient: true,
+        amount: (civConfig.ironSmelt.out / ironBarsPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
       };
+    }
 
     case "goldBar":
       return {
@@ -143,30 +223,35 @@ export const getT3SolderProductionPerMinutePerResourceType = (
         isSufficient: true,
       };
 
-    case "meat":
+    case "meat": {
+      const dynamicAmount = amount - butchers;
+
       return {
-        amount: (civConfig.butcher.out / meatPerSoldier) * amount,
-        isSufficient: true,
+        amount: (civConfig.butcher.out / meatPerSoldier) * dynamicAmount,
+        isSufficient: dynamicAmount >= 0,
       };
+    }
 
     case "bread": {
       const dynamicAmount = amount - bakeries;
-      console.log("dynamicAmount", dynamicAmount);
       return {
         amount: (civConfig.bakery.out / breadPerSoldier) * dynamicAmount,
         isSufficient: dynamicAmount >= 0,
       };
     }
 
-    case "animal":
+    case "animal": {
+      const dynamicAmount = amount - animalFarms;
+
       return {
-        amount: (civConfig.animalFarm.out / animalPerSoldier) * amount,
-        isSufficient: true,
+        amount: (civConfig.animalFarm.out / animalPerSoldier) * dynamicAmount,
+
+        isSufficient: dynamicAmount >= 0,
       };
+    }
 
     case "weat": {
       const dynamicAmount = amount - mills;
-      console.log("dynamicAmount", dynamicAmount);
       return {
         amount: (civConfig.mill.out / weatPerSoldier) * dynamicAmount,
         isSufficient: dynamicAmount >= 0,
@@ -175,16 +260,15 @@ export const getT3SolderProductionPerMinutePerResourceType = (
 
     case "grain": {
       const dynamicAmount = amount - grainFarms;
-      console.log("dynamicAmount", dynamicAmount);
       return {
         amount: (civConfig.grainFarm.out / grainPerSoldier) * dynamicAmount,
+
         isSufficient: dynamicAmount >= 0,
       };
     }
 
     case "water": {
       const dynamicAmount = amount - waterworks;
-      console.log("dynamicAmount", dynamicAmount);
       return {
         amount: (civConfig.waterworks.out / waterPerSoldier) * dynamicAmount,
         isSufficient: dynamicAmount >= 0,
@@ -226,12 +310,17 @@ const getBuildingAmountFromT3PerMinute = (
   const breadRequirementTool =
     (civConfig.coalMine.in / civConfig.coalMine.out) * coalPerTool;
   const animalRequirement = meatRequirement;
+
   const wheatRequirementT3 = breadRequirementT3;
   const wheatRequirementTool = breadRequirementTool;
+
   const grainRequirementT3 =
     (meatRequirement * civConfig.animalFarm.in) / civConfig.animalFarm.out +
     wheatRequirementT3;
-  const grainRequirementTool = wheatRequirementTool;
+  const grainRequirementTool =
+    (meatRequirement * civConfig.animalFarm.in) / civConfig.animalFarm.out +
+    wheatRequirementTool;
+
   const waterRequirementT3 = grainRequirementT3;
   const waterRequirementTool = grainRequirementTool;
 
