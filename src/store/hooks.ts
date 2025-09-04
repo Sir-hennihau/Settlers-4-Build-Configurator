@@ -14,10 +14,6 @@ export const getToolSmithAndStoneMineRequirements = (
   stoneMineAmount: number,
   civilization: string | undefined
 ) => {
-  const civConfig = civilization
-    ? civilizationsConfig[civilization as keyof typeof civilizationsConfig]
-    : civilizationsConfig.romans;
-
   const stoneMineRequirements = getStoneMineRequirements(
     stoneMineAmount,
     civilization
@@ -52,30 +48,22 @@ const getToolSmithRequirements = (
 
   const ironSmelts =
     toolSmithAmount * (civConfig.toolSmith.in / civConfig.ironSmelt.out);
-  console.log("ironSmelts", ironSmelts);
 
   const coalMines =
     toolSmithAmount * ((civConfig.toolSmith.in * 2) / civConfig.coalMine.out);
-  console.log("coalMines", coalMines);
   const ironMines =
     toolSmithAmount * (civConfig.toolSmith.in / civConfig.ironMine.out);
-  console.log("ironMines", ironMines);
 
   const bakeries = (coalMines * civConfig.coalMine.in) / civConfig.bakery.out;
-  console.log("bakeries", bakeries);
   const mills = (bakeries * civConfig.bakery.out) / civConfig.mill.out;
-  console.log("mills", mills);
 
   const butchers = (ironMines * civConfig.coalMine.in) / civConfig.butcher.out;
-  console.log("butchers", butchers);
   const animalFarms =
     (butchers * civConfig.butcher.out) / civConfig.animalFarm.out;
-  console.log("animalFarms", animalFarms);
 
   const grainFarms =
     (bakeries * civConfig.bakery.out) / civConfig.grainFarm.out +
     (animalFarms * civConfig.animalFarm.in) / civConfig.grainFarm.out;
-  console.log("grainFarms for toolsmiths", grainFarms);
 
   const waterWorks =
     (bakeries * civConfig.bakery.out) / civConfig.waterworks.out +
@@ -124,6 +112,8 @@ const getStoneMineRequirements = (
     grainFarms,
   };
 };
+
+export { getStoneMineRequirements };
 
 /**
  * Calculates T3 soldier production per minute based on resource type, amount, and civilization

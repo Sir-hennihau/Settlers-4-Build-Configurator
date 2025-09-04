@@ -7,7 +7,7 @@ import { CivilizationSelector } from "./components/civilization-selector/civiliz
 
 function App() {
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ marginBottom: 10 }}>
       <Headline />
       <CivilizationSelector />
       <BuildingInput />
