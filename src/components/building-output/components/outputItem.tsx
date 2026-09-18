@@ -1,26 +1,26 @@
-import { Grid } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import { getPreviewString } from "../../../helpers/getPreviewString";
-import { Building } from "../../../types/building";
 
 interface OutputItemProps {
-  building: Building;
+  label: string;
+  amount: number;
+  /** Optional second line, e.g. the double/normal split of a mine. */
+  detail?: string;
 }
 
-/**
- * Component that displays a single building requirement item
- * Shows the building name and required quantity
- */
-export const OutputItem = ({ building }: OutputItemProps) => {
-  const buildingAmountString = getPreviewString(building.multiplier);
-
-  return (
-    <>
-      <Grid item xs={8}>
-        {building.label}
-      </Grid>
-      <Grid item xs={4} textAlign={"right"}>
-        {buildingAmountString}
-      </Grid>
-    </>
-  );
-};
+/** One row of the sized build: building name and required quantity. */
+export const OutputItem = ({ label, amount, detail }: OutputItemProps) => (
+  <>
+    <Grid item xs={8}>
+      {label}
+      {detail && (
+        <Typography variant="caption" display="block" color="text.secondary">
+          {detail}
+        </Typography>
+      )}
+    </Grid>
+    <Grid item xs={4} textAlign="right">
+      {getPreviewString(amount)}
+    </Grid>
+  </>
+);

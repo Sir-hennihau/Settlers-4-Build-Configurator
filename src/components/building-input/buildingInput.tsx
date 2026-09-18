@@ -1,223 +1,224 @@
 import {
-  Button,
+  Alert,
+  Collapse,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
   Stack,
+  Switch,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import {
-  getT3SolderProductionPerMinutePerResourceType,
-  getAllBuildingAmountsFromT3PerMinute,
-  useAppDispatch,
-  useAppSelector,
-  getToolSmithAndStoneMineRequirements,
-} from "../../store/hooks";
-import { setBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
-import {
-  setSoldiersPerMinute,
-  selectConfig,
-} from "../../store/config-store/configSlice";
-import { Resource } from "../../types/production";
+  ANCHOR_BUILDINGS,
+  Building,
+  BUILDING_DISPLAY_NAMES,
+} from "../../domain/model/buildings";
+import { useInputs, useInputsDispatch } from "../../state/InputsContext";
+import { useSolution } from "../../state/useSolution";
 
-/** Mapping from building display labels to their produced resources */
-
-const BUILDING_RESOURCE_MAP: {
-  label: string;
-  resource: Resource;
-  icon?: React.ReactNode;
-}[] = [
-  { label: "Grain Farm", resource: "grain" },
-  { label: "Animal Ranch", resource: "animal" },
-  { label: "Waterworks", resource: "water" },
-  { label: "Mill", resource: "weat" },
-  { label: "Bakery", resource: "bread" },
-  { label: "Butcher", resource: "meat" },
-  { label: "Coal Mine", resource: "coal" },
-  { label: "Iron Mine", resource: "ironOre" },
-  { label: "Gold Mine", resource: "goldOre" },
-  {
-    label: "Stone Mine",
-    resource: "stone",
-    icon: "Add stone mines (optional)",
-  },
-  { label: "Iron Smelting Works", resource: "ironBar" },
-  { label: "Weaponsmith's Works", resource: "weapon" },
-  { label: "Gold Smelting Works", resource: "goldBar" },
-];
+const numberField = { inputProps: { min: 0 }, type: "number" as const };
 
 /**
- * Component for selecting building type and amount to calculate production requirements
- * Updates soldiers per minute and building requirements based on user input
+ * Collects everything the user specifies. It holds no derived state of its own:
+ * every value comes from the inputs reducer and every result from the solver.
  */
 export const BuildingInput = () => {
-  const dispatch = useAppDispatch();
-  const { selectedCivilization } = useAppSelector(selectConfig);
-  const [buildingAmount, setBuildingAmount] = useState(1);
-  const [selectedResource, setSelectedResource] = useState<Resource>("grain");
-  const [showStoneMineInput, setShowStoneMineInput] = useState(false);
-  const [stoneMineAmount, setStoneMineAmount] = useState<number>(0);
-  const [toolSmithsAmount, setToolSmithsAmount] = useState<number>(1);
-  const [isSufficient, setIsSufficient] = useState<boolean>(true);
+  const inputs = useInputs();
+  const dispatch = useInputsDispatch();
+  const solution = useSolution();
 
-  getToolSmithAndStoneMineRequirements(
-    toolSmithsAmount,
-    stoneMineAmount,
-    selectedCivilization
-  );
+  // Purely presentational, so it stays out of the inputs reducer.
+  const [showStone, setShowStone] = useState(inputs.stone.kind !== "mineCount");
+  const [showDoubleIron, setShowDoubleIron] = useState(false);
 
-  useEffect(() => {
-    const soldiersPerMinute = getT3SolderProductionPerMinutePerResourceType(
-      selectedResource,
-      buildingAmount,
-      selectedCivilization,
-      stoneMineAmount,
-      toolSmithsAmount
-    );
-    setIsSufficient(soldiersPerMinute?.isSufficient || false);
-    const allBuildingsConfig = getAllBuildingAmountsFromT3PerMinute(
-      soldiersPerMinute?.amount || 0,
-      selectedCivilization,
-      stoneMineAmount,
-      toolSmithsAmount
-    );
-    if (typeof stoneMineAmount === "number") {
-      allBuildingsConfig.stoneMines = stoneMineAmount;
-    }
-    dispatch(setSoldiersPerMinute(soldiersPerMinute?.amount || 0));
-    dispatch(setBuildingRequirements(allBuildingsConfig));
-  }, [
-    selectedResource,
-    buildingAmount,
-    selectedCivilization,
-    stoneMineAmount,
-    dispatch,
-    toolSmithsAmount,
-  ]);
-
-  const onInputChange = (event: SelectChangeEvent) => {
-    const selectedBuilding = BUILDING_RESOURCE_MAP.find(
-      (building) => building.label === event.target.value
-    );
-    if (selectedBuilding) {
-      setSelectedResource(selectedBuilding.resource);
-    }
+  const onAnchorBuildingChange = (event: SelectChangeEvent) => {
+    dispatch({ type: "setAnchorBuilding", building: event.target.value as Building });
   };
 
-  const onBuildingAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const newBuildingAmount = Number(event.target.value);
-    if (newBuildingAmount >= 0) {
-      setBuildingAmount(newBuildingAmount);
-    }
-  };
+  const onNumber =
+    (action: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) =>
+      action(event.target.value);
 
-  const selectedBuilding = BUILDING_RESOURCE_MAP.find(
-    (building) => building.resource === selectedResource
-  );
+  const isBuildingAnchor = inputs.anchor.kind === "building";
+  const showError = !solution.isSufficient;
 
   return (
     <Container>
-      <Stack sx={{ flexDirection: "column", alignItems: "flex-start" }}>
-        <Stack
-          sx={{ flexDirection: "row", alignItems: "center", width: "100%" }}
+      <Stack sx={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          color="primary"
+          value={inputs.anchor.kind}
+          onChange={(_event, mode) => mode && dispatch({ type: "setAnchorMode", mode })}
         >
-          <FormControl sx={{ width: "62%" }}>
-            <InputLabel>Building</InputLabel>
-            <Select
-              value={selectedBuilding?.label || ""}
-              label="Building"
-              onChange={onInputChange}
-              error={!isSufficient}
-            >
-              {BUILDING_RESOURCE_MAP.map((building) => (
-                <MenuItem key={building.label} value={building.label}>
-                  {building.icon && (
-                    <span style={{ verticalAlign: "middle", marginRight: 6 }}>
-                      {building.icon}
-                    </span>
-                  )}
-                  {building.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <ToggleButton value="building">I have this many buildings</ToggleButton>
+          <ToggleButton value="soldiers">I want this many T3/min</ToggleButton>
+        </ToggleButtonGroup>
 
-          <TextField
-            id="outlined-basic"
-            label="Amount"
-            onChange={onBuildingAmountChange}
-            sx={{ marginLeft: 2 }}
-            variant="outlined"
-            value={buildingAmount}
-            type="number"
-            error={!isSufficient}
-          />
-        </Stack>
-        <Stack
-          sx={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: 2,
-            width: "100%",
-          }}
-        >
-          <TextField
-            id="toolsmiths-amount"
-            label="Toolsmiths"
-            onChange={(e) => setToolSmithsAmount(Number(e.target.value))}
-            sx={{ width: "58%" }}
-            variant="outlined"
-            value={toolSmithsAmount}
-            type="number"
-            inputProps={{ min: 0 }}
-          />
-        </Stack>
+        {isBuildingAnchor ? (
+          <Stack sx={{ flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
+            <FormControl sx={{ flex: "1 1 62%" }}>
+              <InputLabel id="anchor-building-label">Building</InputLabel>
+              <Select
+                labelId="anchor-building-label"
+                id="anchor-building"
+                value={inputs.anchor.building}
+                label="Building"
+                onChange={onAnchorBuildingChange}
+                error={showError}
+              >
+                {ANCHOR_BUILDINGS.map((building) => (
+                  <MenuItem key={building} value={building}>
+                    {BUILDING_DISPLAY_NAMES[building]}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-        <Stack
-          sx={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: 2,
-            width: "100%",
-          }}
-        >
-          {showStoneMineInput && (
             <TextField
-              id="stone-mine-amount"
-              label="Stone Mines"
-              onChange={(e) => setStoneMineAmount(Number(e.target.value))}
-              sx={{ marginRight: 2, width: "60%" }}
-              variant="outlined"
-              value={stoneMineAmount ?? ""}
-              type="number"
-              inputProps={{ min: 0 }}
-            />
-          )}
-          <Button
-            style={{
-              padding: "6px 12px",
-              borderRadius: 4,
-              border: "1px solid #ccc",
-              background: "#f5f5f5",
-              cursor: "pointer",
-              color: "GrayText",
-            }}
-            onClick={() => {
-              if (showStoneMineInput) {
-                setStoneMineAmount(0);
+              {...numberField}
+              id="anchor-count"
+              label={
+                inputs.anchor.building === "ironMine" ? "Amount (total)" : "Amount"
               }
-              setShowStoneMineInput((v) => !v);
-            }}
-          >
-            {showStoneMineInput
-              ? "Hide stone mines input"
-              : "Add stone mines (optional)"}
-          </Button>
-        </Stack>
+              helperText={
+                inputs.anchor.building === "ironMine" && inputs.doubleIronMines > 0
+                  ? "Doubles are counted first"
+                  : undefined
+              }
+              sx={{ flex: "1 1 38%" }}
+              variant="outlined"
+              value={inputs.anchor.count}
+              onChange={onNumber((value) => dispatch({ type: "setAnchorCount", value }))}
+              error={showError}
+            />
+          </Stack>
+        ) : (
+          <TextField
+            {...numberField}
+            id="soldiers-per-minute"
+            label="T3 soldiers per minute"
+            variant="outlined"
+            value={inputs.anchor.soldiersPerMinute}
+            onChange={onNumber((value) =>
+              dispatch({ type: "setSoldiersPerMinute", value })
+            )}
+          />
+        )}
+
+        <TextField
+          {...numberField}
+          id="toolsmiths"
+          label="Toolsmiths"
+          variant="outlined"
+          sx={{ maxWidth: { sm: "58%" } }}
+          value={inputs.toolSmiths}
+          onChange={onNumber((value) => dispatch({ type: "setToolSmiths", value }))}
+        />
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showDoubleIron}
+              onChange={(_event, checked) => {
+                setShowDoubleIron(checked);
+                if (!checked) dispatch({ type: "setDoubleIronMines", value: 0 });
+              }}
+            />
+          }
+          label="I have double-deposit iron mines"
+        />
+        <Collapse in={showDoubleIron}>
+          <TextField
+            {...numberField}
+            id="double-iron-mines"
+            label="Double iron mines"
+            helperText="Same meat, double the ore"
+            variant="outlined"
+            fullWidth
+            value={inputs.doubleIronMines}
+            onChange={onNumber((value) =>
+              dispatch({ type: "setDoubleIronMines", value })
+            )}
+          />
+        </Collapse>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showStone}
+              onChange={(_event, checked) => {
+                setShowStone(checked);
+                if (!checked) {
+                  dispatch({ type: "setStoneMode", mode: "mineCount" });
+                  dispatch({ type: "setStoneValue", value: 0 });
+                }
+              }}
+            />
+          }
+          label="Include stone mining"
+        />
+        <Collapse in={showStone}>
+          <Stack sx={{ gap: 2 }}>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              color="primary"
+              value={inputs.stone.kind}
+              onChange={(_event, mode) => mode && dispatch({ type: "setStoneMode", mode })}
+            >
+              <ToggleButton value="mineCount">I have N mines</ToggleButton>
+              <ToggleButton value="perMinute">I want N stone/min</ToggleButton>
+            </ToggleButtonGroup>
+
+            <Stack sx={{ flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
+              <TextField
+                {...numberField}
+                id="stone-value"
+                label={inputs.stone.kind === "mineCount" ? "Stone mines" : "Stone per minute"}
+                variant="outlined"
+                sx={{ flex: 1 }}
+                value={
+                  inputs.stone.kind === "mineCount"
+                    ? inputs.stone.count
+                    : inputs.stone.value
+                }
+                onChange={onNumber((value) => dispatch({ type: "setStoneValue", value }))}
+              />
+              <TextField
+                {...numberField}
+                id="double-stone-mines"
+                label={
+                  inputs.stone.kind === "mineCount"
+                    ? "Of which double"
+                    : "Double mines available"
+                }
+                variant="outlined"
+                sx={{ flex: 1 }}
+                value={inputs.doubleStoneMines}
+                onChange={onNumber((value) =>
+                  dispatch({ type: "setDoubleStoneMines", value })
+                )}
+              />
+            </Stack>
+
+            {inputs.stone.kind === "mineCount" && inputs.doubleStoneMines > 0 && (
+              <Alert severity="info">
+                Double stone mines eat the same bread as ordinary ones, so with a fixed
+                mine count they raise stone output without changing any other building.
+                Switch to a stone/min target to see them cut the bread cost.
+              </Alert>
+            )}
+          </Stack>
+        </Collapse>
       </Stack>
     </Container>
   );

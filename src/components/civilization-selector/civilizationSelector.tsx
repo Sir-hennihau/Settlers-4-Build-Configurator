@@ -6,45 +6,43 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
-  selectConfig,
-  setSelectedCivilization,
-} from "../../store/config-store/configSlice";
-import {
-  CivilizationType,
-  CIVILIZATION_DISPLAY_NAMES,
-} from "../../data/civilizationsConfig";
+  CIVILIZATIONS,
+  CIVILIZATION_IDS,
+  CivilizationId,
+} from "../../domain/data/civilizations";
+import { useInputs, useInputsDispatch } from "../../state/InputsContext";
 
 /**
- * Dropdown component for selecting different civilizations
- * Changes affect all production calculations and building requirements
+ * Picks the civilization. Every production rate in the app is keyed off this.
  */
 export const CivilizationSelector = () => {
-  const dispatch = useAppDispatch();
-  const { selectedCivilization } = useAppSelector(selectConfig);
+  const { civilization } = useInputs();
+  const dispatch = useInputsDispatch();
 
-  const onCivilizationChange = (event: SelectChangeEvent) => {
-    const civilization = event.target.value as CivilizationType;
-    dispatch(setSelectedCivilization(civilization));
+  const onChange = (event: SelectChangeEvent) => {
+    dispatch({
+      type: "setCivilization",
+      civilization: event.target.value as CivilizationId,
+    });
   };
 
   return (
     <Container sx={{ marginBottom: 2 }}>
       <FormControl fullWidth>
-        <InputLabel>Civilization</InputLabel>
+        <InputLabel id="civilization-label">Civilization</InputLabel>
         <Select
-          value={selectedCivilization}
+          labelId="civilization-label"
+          id="civilization"
+          value={civilization}
           label="Civilization"
-          onChange={onCivilizationChange}
+          onChange={onChange}
         >
-          {Object.entries(CIVILIZATION_DISPLAY_NAMES).map(
-            ([key, displayName]) => (
-              <MenuItem key={key} value={key}>
-                {displayName}
-              </MenuItem>
-            )
-          )}
+          {CIVILIZATION_IDS.map((id) => (
+            <MenuItem key={id} value={id}>
+              {CIVILIZATIONS[id].displayName}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
     </Container>
