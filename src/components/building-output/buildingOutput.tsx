@@ -1,44 +1,36 @@
 import { Grid } from "@mui/material";
-import { useAppSelector } from "../../store/hooks";
-import { selectBuildingRequirements } from "../../store/building-requirements/buildingRequirementsSlice";
+import {
+  BUILDINGS,
+  BUILDING_DISPLAY_NAMES,
+} from "../../domain/model/buildings";
+import { useSolution } from "../../state/useSolution";
 import { OutputItem } from "./components/outputItem";
 
-/** Mapping from building requirement keys to their display names */
-const BUILDING_DISPLAY_NAMES: { [key: string]: string } = {
-  grainFarms: "Grain Farms",
-  animalFarms: "Animal Farms",
-  waterworks: "Waterworks",
-  mills: "Mills",
-  bakeries: "Bakeries",
-  butchers: "Butchers",
-  coalMines: "Coal Mines",
-  ironMines: "Iron Mines",
-  goldMines: "Gold Mines",
-  stoneMines: "Stone Mines",
-  goldSmelts: "Gold Smelts",
-  ironSmelts: "Iron Smelts",
-  weaponSmiths: "Weapon Smiths",
-  toolSmiths: "Tool Smiths",
-};
-
 /**
- * Component that displays all calculated building requirements
- * Shows the number of each building type needed for current production target
+ * Displays the sized build. Iteration order comes from `BUILDINGS` rather than
+ * from object key order, and labels come from a total `Record<Building, string>`
+ * so a missing one is a compile error rather than a raw key leaking into the UI.
  */
 export const BuildingOutput = () => {
-  const buildingRequirements = useAppSelector(selectBuildingRequirements);
+  const solution = useSolution();
 
   return (
     <Grid container spacing={2} sx={{ marginTop: 1 }}>
-      {Object.entries(buildingRequirements).map(([buildingKey, amount]) => (
-        <OutputItem
-          key={buildingKey}
-          building={{
-            label: BUILDING_DISPLAY_NAMES[buildingKey] || buildingKey,
-            multiplier: amount,
-          }}
-        />
-      ))}
+      {BUILDINGS.map((building) => {
+        const result = solution.buildings[building];
+        const split =
+          result.double > 0
+            ? `${result.double.toFixed(1)} double + ${result.normal.toFixed(1)} normal`
+            : undefined;
+        return (
+          <OutputItem
+            key={building}
+            label={BUILDING_DISPLAY_NAMES[building]}
+            amount={result.count}
+            detail={split}
+          />
+        );
+      })}
     </Grid>
   );
 };
