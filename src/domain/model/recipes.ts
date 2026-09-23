@@ -25,9 +25,11 @@ export interface Recipe {
 }
 
 export const RECIPES: Readonly<Record<Resource, Recipe>> = {
-  // A T3 soldier is 1 weapon + 2 gold bars. Modelling it as a recipe rather
-  // than a hand-rolled root is what lets the graph code have no special cases.
-  soldierT3: { output: "soldierT3", outputQty: 1, inputs: { weapon: 1, goldBar: 2 }, building: null },
+  // A fully equipped (T3) soldier is 1 weapon + 2 gold bars; when the map caps
+  // gold, the soldier allocator withholds gold and the rest drop to level 1.
+  // Modelling it as a recipe rather than a hand-rolled root is what lets the
+  // graph code have no special cases.
+  soldier: { output: "soldier", outputQty: 1, inputs: { weapon: 1, goldBar: 2 }, building: null },
 
   weapon: { output: "weapon", outputQty: 1, inputs: { ironBar: 1, coal: 1 }, building: "weaponSmith" },
   tool: { output: "tool", outputQty: 1, inputs: { ironBar: 1, coal: 1 }, building: "toolSmith" },

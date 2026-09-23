@@ -2,7 +2,8 @@ import { CivilizationId, civilizationById } from "../domain/data/civilizations";
 import { Building } from "../domain/model/buildings";
 import { Anchor, SolverInputs, StoneInput } from "../domain/solve/types";
 
-export type AnchorMode = Anchor["kind"];
+/** The app always anchors on a building count; the soldier target is derived. */
+export type BuildingAnchor = Extract<Anchor, { kind: "building" }>;
 export type StoneMode = StoneInput["kind"];
 
 /**
@@ -14,11 +15,13 @@ export type StoneMode = StoneInput["kind"];
  */
 export interface InputsState {
   readonly civilization: CivilizationId;
-  readonly anchor: Anchor;
+  readonly anchor: BuildingAnchor;
   readonly toolSmiths: number;
   readonly stone: StoneInput;
   readonly doubleIronMines: number;
   readonly doubleStoneMines: number;
+  /** `null` when the map does not limit gold deposits. */
+  readonly maxGoldMines: number | null;
 }
 
 export const INITIAL_INPUTS: InputsState = {
@@ -28,19 +31,20 @@ export const INITIAL_INPUTS: InputsState = {
   stone: { kind: "mineCount", count: 0 },
   doubleIronMines: 0,
   doubleStoneMines: 0,
+  maxGoldMines: null,
 };
 
 export type InputsAction =
   | { type: "setCivilization"; civilization: CivilizationId }
-  | { type: "setAnchorMode"; mode: AnchorMode }
   | { type: "setAnchorBuilding"; building: Building }
   | { type: "setAnchorCount"; value: unknown }
-  | { type: "setSoldiersPerMinute"; value: unknown }
   | { type: "setToolSmiths"; value: unknown }
   | { type: "setStoneMode"; mode: StoneMode }
   | { type: "setStoneValue"; value: unknown }
   | { type: "setDoubleIronMines"; value: unknown }
   | { type: "setDoubleStoneMines"; value: unknown }
+  | { type: "setMaxGoldMines"; value: unknown }
+  | { type: "clearMaxGoldMines" }
   | { type: "reset" };
 
 /**
@@ -63,35 +67,15 @@ export function inputsReducer(state: InputsState, action: InputsAction): InputsS
       if (state.civilization === action.civilization) return state;
       return { ...state, civilization: action.civilization };
 
-    case "setAnchorMode": {
-      if (state.anchor.kind === action.mode) return state;
-      return {
-        ...state,
-        anchor:
-          action.mode === "soldiers"
-            ? { kind: "soldiers", soldiersPerMinute: 10 }
-            : { kind: "building", building: "grainFarm", count: 10 },
-      };
-    }
-
     case "setAnchorBuilding": {
-      if (state.anchor.kind !== "building") return state;
       if (state.anchor.building === action.building) return state;
       return { ...state, anchor: { ...state.anchor, building: action.building } };
     }
 
     case "setAnchorCount": {
-      if (state.anchor.kind !== "building") return state;
       const count = clampNonNegative(action.value);
       if (state.anchor.count === count) return state;
       return { ...state, anchor: { ...state.anchor, count } };
-    }
-
-    case "setSoldiersPerMinute": {
-      if (state.anchor.kind !== "soldiers") return state;
-      const soldiersPerMinute = clampNonNegative(action.value);
-      if (state.anchor.soldiersPerMinute === soldiersPerMinute) return state;
-      return { ...state, anchor: { kind: "soldiers", soldiersPerMinute } };
     }
 
     case "setToolSmiths": {
@@ -145,6 +129,16 @@ export function inputsReducer(state: InputsState, action: InputsAction): InputsS
       return { ...state, doubleStoneMines };
     }
 
+    case "setMaxGoldMines": {
+      const maxGoldMines = clampNonNegative(action.value);
+      if (state.maxGoldMines === maxGoldMines) return state;
+      return { ...state, maxGoldMines };
+    }
+
+    case "clearMaxGoldMines":
+      if (state.maxGoldMines === null) return state;
+      return { ...state, maxGoldMines: null };
+
     case "reset":
       return INITIAL_INPUTS;
 
@@ -159,4 +153,5 @@ export const toSolverInputs = (state: InputsState): SolverInputs => ({
   stone: state.stone,
   doubleIronMines: state.doubleIronMines,
   doubleStoneMines: state.doubleStoneMines,
+  maxGoldMines: state.maxGoldMines ?? undefined,
 });

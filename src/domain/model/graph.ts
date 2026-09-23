@@ -14,7 +14,7 @@ import { Resource, RESOURCES, RESOURCE_INDEX } from "./resources";
  * Edge direction: an edge runs from a recipe's output to each of its inputs,
  * meaning "resolve the output first". Indegree is therefore the number of
  * recipes consuming a resource, and the roots (indegree 0) are precisely the
- * exogenous demand entry points: soldierT3, tool and stone.
+ * exogenous demand entry points: soldier, tool and stone.
  *
  * Ties are broken by index into `RESOURCES`, so the order is a pure function of
  * the recipe table and can be pinned in a test.

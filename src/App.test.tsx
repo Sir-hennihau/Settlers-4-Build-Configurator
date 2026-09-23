@@ -51,8 +51,39 @@ test("flags a count that cannot cover the toolsmith overhead", () => {
   expect(screen.getByText(/supports no soldiers at all/)).toBeInTheDocument();
 });
 
-test("switches to a soldiers-per-minute target", () => {
+test("anchors on buildings only, with no soldier-target mode", () => {
   renderApp();
-  fireEvent.click(screen.getByText("I want this many T3/min"));
-  expect(screen.getByLabelText("T3 soldiers per minute")).toBeInTheDocument();
+  expect(screen.queryByText("I want this many T3/min")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Building")).toBeInTheDocument();
+});
+
+test("shows the double iron mine counter without a toggle", () => {
+  renderApp();
+  expect(screen.getByLabelText("Double iron mines")).toBeVisible();
+});
+
+test("a gold mine cap splits soldiers into T3 and level 1", () => {
+  renderApp();
+  fireEvent.click(screen.getByLabelText("The map limits gold mines"));
+  fireEvent.change(screen.getByLabelText("Max gold mines"), { target: { value: "0" } });
+
+  const valueOf = (label: string) =>
+    screen.getByText(label).parentElement?.lastElementChild?.textContent;
+  expect(valueOf("Level 3 soldiers")).toBe("0");
+  expect(valueOf("Level 1 soldiers")).toBe(valueOf("Soldiers per minute"));
+  expect(screen.getByText("Gold Mines").nextElementSibling?.textContent).toBe("0");
+});
+
+test("an amount field can be cleared and accepts a decimal comma", () => {
+  renderApp();
+  const amount = screen.getByLabelText("Amount") as HTMLInputElement;
+
+  fireEvent.change(amount, { target: { value: "" } });
+  expect(amount.value).toBe("");
+
+  fireEvent.change(amount, { target: { value: "2,5" } });
+  expect(amount.value).toBe("2,5");
+
+  fireEvent.change(amount, { target: { value: "2,5x" } });
+  expect(amount.value).toBe("2,5");
 });

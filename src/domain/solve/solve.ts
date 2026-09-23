@@ -17,4 +17,4 @@ export function solve(anchor: Anchor, inputs: SolverInputs): Solved {
 export * from "./types";
 export { solveForward } from "./forward";
 export { solveInverse } from "./inverse";
-export { breakpointsInT3pm, assertNoKinkedAncestors } from "./breakpoints";
+export { breakpointsInSoldierRate, assertNoKinkedAncestors } from "./breakpoints";

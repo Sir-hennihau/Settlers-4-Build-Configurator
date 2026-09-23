@@ -2,7 +2,7 @@ import { civilizationById } from "../data/civilizations";
 import { BUILDINGS } from "../model/buildings";
 import { outputRatePerMinute } from "../model/rates";
 import { bisectForward } from "../solve/bisect";
-import { breakpointsInT3pm } from "../solve/breakpoints";
+import { breakpointsInSoldierRate } from "../solve/breakpoints";
 import { solveForward } from "../solve/forward";
 import { solveInverse } from "../solve/inverse";
 import { SolverInputs } from "../solve/types";
@@ -20,12 +20,12 @@ const inputsFor = (overrides: Partial<SolverInputs> = {}): SolverInputs => ({
 
 describe("double iron mines", () => {
   it("produces no breakpoint when there are none", () => {
-    expect(breakpointsInT3pm(inputsFor())).toEqual([]);
+    expect(breakpointsInSoldierRate(inputsFor())).toEqual([]);
   });
 
   it("produces exactly one breakpoint, at the hand-computed target", () => {
     const inputs = inputsFor({ doubleIronMines: 3 });
-    const points = breakpointsInT3pm(inputs);
+    const points = breakpointsInSoldierRate(inputs);
     expect(points).toHaveLength(1);
 
     // One iron ore per soldier, so 3 double mines cover 3 * 2 * rate soldiers.
@@ -35,14 +35,14 @@ describe("double iron mines", () => {
 
   it("shifts the breakpoint down by the toolsmiths' own ore demand", () => {
     const rate = outputRatePerMinute("ironMine", romans);
-    const withTools = breakpointsInT3pm(inputsFor({ doubleIronMines: 3, toolSmiths: 2 }));
+    const withTools = breakpointsInSoldierRate(inputsFor({ doubleIronMines: 3, toolSmiths: 2 }));
     const toolOre = solveForward(0, inputsFor({ toolSmiths: 2 })).demand.ironOre;
     expect(withTools[0]).toBeCloseTo(3 * 2 * rate - toolOre, 9);
   });
 
   it("is continuous across the kink", () => {
     const inputs = inputsFor({ doubleIronMines: 3, toolSmiths: 1 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
     const epsilon = 1e-6;
     const below = solveForward(kink - epsilon, inputs);
     const above = solveForward(kink + epsilon, inputs);
@@ -56,7 +56,7 @@ describe("double iron mines", () => {
 
   it("halves the meat-side slope below the kink", () => {
     const inputs = inputsFor({ doubleIronMines: 5 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
 
     const slope = (from: number, to: number, building: "butcher" | "animalRanch") =>
       (solveForward(to, inputs).buildings[building].count -
@@ -72,7 +72,7 @@ describe("double iron mines", () => {
 
   it("makes the marginal iron mine ordinary above the kink", () => {
     const inputs = inputsFor({ doubleIronMines: 4 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
     const rate = outputRatePerMinute("ironMine", romans);
 
     const slopeAbove =
@@ -88,7 +88,7 @@ describe("double iron mines", () => {
 
   it("leaves the coal side untouched by the iron kink", () => {
     const inputs = inputsFor({ doubleIronMines: 4 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
     const slope = (from: number, to: number) =>
       (solveForward(to, inputs).buildings.coalMine.count -
         solveForward(from, inputs).buildings.coalMine.count) /
@@ -100,7 +100,7 @@ describe("double iron mines", () => {
     // Grain feeds both the bread chain (unkinked) and the animal chain
     // (kinked), so its slope ratio must sit strictly between 1/2 and 1.
     const inputs = inputsFor({ doubleIronMines: 5 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
     for (const building of ["grainFarm", "waterworks"] as const) {
       const below =
         (solveForward(kink * 0.5, inputs).buildings[building].count -
@@ -118,7 +118,7 @@ describe("double iron mines", () => {
 
   it("round-trips exactly on both sides of the kink and at it", () => {
     const inputs = inputsFor({ doubleIronMines: 3, toolSmiths: 2 });
-    const [kink] = breakpointsInT3pm(inputs);
+    const [kink] = breakpointsInSoldierRate(inputs);
     for (const target of [kink * 0.4, kink, kink * 2.2]) {
       const count = solveForward(target, inputs).buildings.ironMine.count;
       expect(solveInverse("ironMine", count, inputs).soldiersPerMinute).toBeCloseTo(
@@ -187,9 +187,9 @@ describe("double stone mines", () => {
     expect(doubled.buildings.bakery.count).toBeLessThan(plain.buildings.bakery.count);
   });
 
-  it("never emits a t3pm breakpoint, because stone demand is exogenous", () => {
+  it("never emits a soldierRate breakpoint, because stone demand is exogenous", () => {
     expect(
-      breakpointsInT3pm(
+      breakpointsInSoldierRate(
         inputsFor({ stone: { kind: "mineCount", count: 5 }, doubleStoneMines: 2 })
       )
     ).toEqual([]);

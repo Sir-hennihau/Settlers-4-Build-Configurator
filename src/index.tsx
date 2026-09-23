@@ -1,8 +1,10 @@
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { InputsProvider } from "./state/InputsContext";
 import reportWebVitals from "./reportWebVitals";
+import { theme } from "./theme/theme";
 import "./index.css";
 
 const container = document.getElementById("root")!;
@@ -10,9 +12,12 @@ const root = createRoot(container);
 
 root.render(
   <React.StrictMode>
-    <InputsProvider>
-      <App />
-    </InputsProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <InputsProvider>
+        <App />
+      </InputsProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
 

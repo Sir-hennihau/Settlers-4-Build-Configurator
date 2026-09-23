@@ -1,5 +1,5 @@
 import { Building } from "../model/buildings";
-import { breakpointsInT3pm } from "./breakpoints";
+import { breakpointsInSoldierRate } from "./breakpoints";
 import { solveForward } from "./forward";
 import { EPSILON, Solved, SolverInputs, Warning } from "./types";
 
@@ -25,7 +25,7 @@ export function solveInverse(
   enteredCount: number,
   inputs: SolverInputs
 ): Solved {
-  const ts = [0, ...breakpointsInT3pm(inputs)];
+  const ts = [0, ...breakpointsInSoldierRate(inputs)];
   const cs = ts.map((t) => countAt(t, building, inputs));
 
   const overhead = cs[0];

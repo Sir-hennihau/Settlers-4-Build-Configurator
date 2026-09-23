@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Collapse,
   FormControl,
   FormControlLabel,
@@ -9,12 +10,11 @@ import {
   SelectChangeEvent,
   Stack,
   Switch,
-  TextField,
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
 import { Container } from "@mui/system";
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import {
   ANCHOR_BUILDINGS,
   Building,
@@ -22,12 +22,15 @@ import {
 } from "../../domain/model/buildings";
 import { useInputs, useInputsDispatch } from "../../state/InputsContext";
 import { useSolution } from "../../state/useSolution";
-
-const numberField = { inputProps: { min: 0 }, type: "number" as const };
+import { AccentSection } from "../accent-section/accentSection";
+import { NumberField } from "../number-field/numberField";
 
 /**
  * Collects everything the user specifies. It holds no derived state of its own:
  * every value comes from the inputs reducer and every result from the solver.
+ *
+ * Each setting sits in a panel coloured like the production chain it affects,
+ * matching the output cards below.
  */
 export const BuildingInput = () => {
   const inputs = useInputs();
@@ -36,34 +39,18 @@ export const BuildingInput = () => {
 
   // Purely presentational, so it stays out of the inputs reducer.
   const [showStone, setShowStone] = useState(inputs.stone.kind !== "mineCount");
-  const [showDoubleIron, setShowDoubleIron] = useState(false);
 
   const onAnchorBuildingChange = (event: SelectChangeEvent) => {
     dispatch({ type: "setAnchorBuilding", building: event.target.value as Building });
   };
 
-  const onNumber =
-    (action: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) =>
-      action(event.target.value);
-
-  const isBuildingAnchor = inputs.anchor.kind === "building";
   const showError = !solution.isSufficient;
+  const hasGoldCap = inputs.maxGoldMines !== null;
 
   return (
-    <Container>
-      <Stack sx={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          color="primary"
-          value={inputs.anchor.kind}
-          onChange={(_event, mode) => mode && dispatch({ type: "setAnchorMode", mode })}
-        >
-          <ToggleButton value="building">I have this many buildings</ToggleButton>
-          <ToggleButton value="soldiers">I want this many T3/min</ToggleButton>
-        </ToggleButtonGroup>
-
-        {isBuildingAnchor ? (
+    <Container disableGutters>
+      <Stack sx={{ gap: 1.5 }}>
+        <AccentSection hue="green" title="Your build">
           <Stack sx={{ flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
             <FormControl sx={{ flex: "1 1 62%" }}>
               <InputLabel id="anchor-building-label">Building</InputLabel>
@@ -83,8 +70,7 @@ export const BuildingInput = () => {
               </Select>
             </FormControl>
 
-            <TextField
-              {...numberField}
+            <NumberField
               id="anchor-count"
               label={
                 inputs.anchor.building === "ironMine" ? "Amount (total)" : "Amount"
@@ -95,130 +81,135 @@ export const BuildingInput = () => {
                   : undefined
               }
               sx={{ flex: "1 1 38%" }}
-              variant="outlined"
               value={inputs.anchor.count}
-              onChange={onNumber((value) => dispatch({ type: "setAnchorCount", value }))}
+              onValueChange={(value) => dispatch({ type: "setAnchorCount", value })}
               error={showError}
             />
           </Stack>
-        ) : (
-          <TextField
-            {...numberField}
-            id="soldiers-per-minute"
-            label="T3 soldiers per minute"
-            variant="outlined"
-            value={inputs.anchor.soldiersPerMinute}
-            onChange={onNumber((value) =>
-              dispatch({ type: "setSoldiersPerMinute", value })
-            )}
-          />
-        )}
+        </AccentSection>
 
-        <TextField
-          {...numberField}
-          id="toolsmiths"
-          label="Toolsmiths"
-          variant="outlined"
-          sx={{ maxWidth: { sm: "58%" } }}
-          value={inputs.toolSmiths}
-          onChange={onNumber((value) => dispatch({ type: "setToolSmiths", value }))}
-        />
-
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showDoubleIron}
-              onChange={(_event, checked) => {
-                setShowDoubleIron(checked);
-                if (!checked) dispatch({ type: "setDoubleIronMines", value: 0 });
-              }}
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
+          <AccentSection chain="smiths" title="Tools">
+            <NumberField
+              id="toolsmiths"
+              label="Toolsmiths"
+              fullWidth
+              value={inputs.toolSmiths}
+              onValueChange={(value) => dispatch({ type: "setToolSmiths", value })}
             />
-          }
-          label="I have double-deposit iron mines"
-        />
-        <Collapse in={showDoubleIron}>
-          <TextField
-            {...numberField}
-            id="double-iron-mines"
-            label="Double iron mines"
-            helperText="Same meat, double the ore"
-            variant="outlined"
-            fullWidth
-            value={inputs.doubleIronMines}
-            onChange={onNumber((value) =>
-              dispatch({ type: "setDoubleIronMines", value })
-            )}
-          />
-        </Collapse>
+          </AccentSection>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showStone}
-              onChange={(_event, checked) => {
-                setShowStone(checked);
-                if (!checked) {
-                  dispatch({ type: "setStoneMode", mode: "mineCount" });
-                  dispatch({ type: "setStoneValue", value: 0 });
-                }
-              }}
+          <AccentSection chain="iron" title="Iron">
+            <NumberField
+              id="double-iron-mines"
+              label="Double iron mines"
+              helperText="Same meat, double the ore"
+              fullWidth
+              value={inputs.doubleIronMines}
+              onValueChange={(value) => dispatch({ type: "setDoubleIronMines", value })}
             />
-          }
-          label="Include stone mining"
-        />
-        <Collapse in={showStone}>
-          <Stack sx={{ gap: 2 }}>
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              color="primary"
-              value={inputs.stone.kind}
-              onChange={(_event, mode) => mode && dispatch({ type: "setStoneMode", mode })}
-            >
-              <ToggleButton value="mineCount">I have N mines</ToggleButton>
-              <ToggleButton value="perMinute">I want N stone/min</ToggleButton>
-            </ToggleButtonGroup>
+          </AccentSection>
+        </Box>
 
-            <Stack sx={{ flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
-              <TextField
-                {...numberField}
-                id="stone-value"
-                label={inputs.stone.kind === "mineCount" ? "Stone mines" : "Stone per minute"}
-                variant="outlined"
-                sx={{ flex: 1 }}
-                value={
-                  inputs.stone.kind === "mineCount"
-                    ? inputs.stone.count
-                    : inputs.stone.value
+        <AccentSection chain="gold" title="Gold">
+          <FormControlLabel
+            control={
+              <Switch
+                color="secondary"
+                checked={hasGoldCap}
+                onChange={(_event, checked) =>
+                  dispatch(
+                    checked
+                      ? {
+                          type: "setMaxGoldMines",
+                          // Start from what the build needs now, so nothing jumps.
+                          value: Math.ceil(solution.buildings.goldMine.count),
+                        }
+                      : { type: "clearMaxGoldMines" }
+                  )
                 }
-                onChange={onNumber((value) => dispatch({ type: "setStoneValue", value }))}
               />
-              <TextField
-                {...numberField}
-                id="double-stone-mines"
-                label={
-                  inputs.stone.kind === "mineCount"
-                    ? "Of which double"
-                    : "Double mines available"
-                }
-                variant="outlined"
-                sx={{ flex: 1 }}
-                value={inputs.doubleStoneMines}
-                onChange={onNumber((value) =>
-                  dispatch({ type: "setDoubleStoneMines", value })
-                )}
+            }
+            label="The map limits gold mines"
+          />
+          <Collapse in={hasGoldCap}>
+            <NumberField
+              id="max-gold-mines"
+              label="Max gold mines"
+              helperText="Gold goes to level 3 soldiers first; the rest are level 1 soldiers"
+              fullWidth
+              sx={{ marginTop: 1 }}
+              value={inputs.maxGoldMines ?? 0}
+              onValueChange={(value) => dispatch({ type: "setMaxGoldMines", value })}
+            />
+          </Collapse>
+        </AccentSection>
+
+        <AccentSection chain="stone">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showStone}
+                onChange={(_event, checked) => {
+                  setShowStone(checked);
+                  if (!checked) {
+                    dispatch({ type: "setStoneMode", mode: "mineCount" });
+                    dispatch({ type: "setStoneValue", value: 0 });
+                  }
+                }}
               />
+            }
+            label="Include stone mining"
+          />
+          <Collapse in={showStone}>
+            <Stack sx={{ gap: 2, marginTop: 1 }}>
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                color="primary"
+                value={inputs.stone.kind}
+                onChange={(_event, mode) => mode && dispatch({ type: "setStoneMode", mode })}
+                sx={{ backgroundColor: "#fff" }}
+              >
+                <ToggleButton value="mineCount">I have N mines</ToggleButton>
+                <ToggleButton value="perMinute">I want N stone/min</ToggleButton>
+              </ToggleButtonGroup>
+
+              <Stack sx={{ flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
+                <NumberField
+                  id="stone-value"
+                  label={inputs.stone.kind === "mineCount" ? "Stone mines" : "Stone per minute"}
+                  sx={{ flex: 1 }}
+                  value={
+                    inputs.stone.kind === "mineCount"
+                      ? inputs.stone.count
+                      : inputs.stone.value
+                  }
+                  onValueChange={(value) => dispatch({ type: "setStoneValue", value })}
+                />
+                <NumberField
+                  id="double-stone-mines"
+                  label={
+                    inputs.stone.kind === "mineCount"
+                      ? "Of which double"
+                      : "Double mines available"
+                  }
+                  sx={{ flex: 1 }}
+                  value={inputs.doubleStoneMines}
+                  onValueChange={(value) => dispatch({ type: "setDoubleStoneMines", value })}
+                />
+              </Stack>
+
+              {inputs.stone.kind === "mineCount" && inputs.doubleStoneMines > 0 && (
+                <Alert severity="info">
+                  Double stone mines eat the same bread as ordinary ones, so with a fixed
+                  mine count they raise stone output without changing any other building.
+                  Switch to a stone/min target to see them cut the bread cost.
+                </Alert>
+              )}
             </Stack>
-
-            {inputs.stone.kind === "mineCount" && inputs.doubleStoneMines > 0 && (
-              <Alert severity="info">
-                Double stone mines eat the same bread as ordinary ones, so with a fixed
-                mine count they raise stone output without changing any other building.
-                Switch to a stone/min target to see them cut the bread cost.
-              </Alert>
-            )}
-          </Stack>
-        </Collapse>
+          </Collapse>
+        </AccentSection>
       </Stack>
     </Container>
   );

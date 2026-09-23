@@ -42,13 +42,14 @@ function exogenousStoneDemand(inputs: SolverInputs): number {
 }
 
 /**
- * Sizes every building for a given T3 soldier target.
+ * Sizes every building for a given soldier target (soldiers of any level per
+ * minute; how many of them get gold is decided by the soldier node's allocator).
  *
  * Walks the production graph in demand order, letting each resource's allocator
  * decide how its demand is met, and pushes the resulting input demand upstream.
  * There is no branch on resource identity anywhere in the loop.
  */
-export function solveForward(t3pm: number, inputs: SolverInputs): Solution {
+export function solveForward(soldierRate: number, inputs: SolverInputs): Solution {
   const { civ } = inputs;
 
   const demand = zeroResourceRecord();
@@ -61,7 +62,7 @@ export function solveForward(t3pm: number, inputs: SolverInputs): Solution {
   const warnings: Warning[] = [];
 
   // The three exogenous entry points, which are exactly the graph's roots.
-  demand.soldierT3 = Math.max(0, t3pm);
+  demand.soldier = Math.max(0, soldierRate);
   demand.tool = Math.max(0, inputs.toolSmiths) * outputRatePerMinute("toolSmith", civ);
   demand.stone = exogenousStoneDemand(inputs);
 
@@ -117,8 +118,13 @@ export function solveForward(t3pm: number, inputs: SolverInputs): Solution {
     }
   }
 
+  const soldiers = Math.max(0, soldierRate);
+  const goldPerT3 = (RECIPES.soldier.inputs.goldBar as number) / RECIPES.soldier.outputQty;
+  const level3 = Math.min(soldiers, (contributions.goldBar.soldier ?? 0) / goldPerT3);
+
   return {
-    soldiersPerMinute: Math.max(0, t3pm),
+    soldiersPerMinute: soldiers,
+    soldierLevels: { level3, level1: Math.max(0, soldiers - level3) },
     buildings,
     demand,
     contributions,

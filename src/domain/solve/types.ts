@@ -22,6 +22,22 @@ export interface SolverInputs {
   /** Of the iron mines the solve calls for, how many sit on a double deposit. */
   readonly doubleIronMines: number;
   readonly doubleStoneMines: number;
+  /**
+   * Gold deposits the map allows, or `undefined` for no cap. Gold goes to T3s
+   * first; soldiers beyond what the gold covers are recruited at level 1.
+   */
+  readonly maxGoldMines?: number;
+}
+
+/**
+ * Soldiers per minute by level. A level-1 soldier costs one weapon, a level-3
+ * (T3) soldier one weapon and two gold bars. Gold is spent on T3s first, so
+ * level 2 (one weapon, one gold bar) never arises at a steady rate and is not
+ * modelled.
+ */
+export interface SoldierLevels {
+  readonly level3: number;
+  readonly level1: number;
 }
 
 export interface BuildingResult {
@@ -50,7 +66,9 @@ export type Warning =
   | { readonly kind: "unconstrainedAnchor"; readonly building: Building };
 
 export interface Solution {
+  /** All soldiers, whatever their level — equal to weapons consumed per minute. */
   readonly soldiersPerMinute: number;
+  readonly soldierLevels: SoldierLevels;
   readonly buildings: Readonly<Record<Building, BuildingResult>>;
   /** Units per minute of each resource the build consumes. */
   readonly demand: Readonly<Record<Resource, number>>;

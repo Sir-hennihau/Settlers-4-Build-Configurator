@@ -2,6 +2,7 @@ import { ANCHOR_BUILDINGS, BUILDINGS } from "../model/buildings";
 import { assertWellFormed, demandAncestors, topologicalOrder } from "../model/graph";
 import { consumersOf, inputsOf, OUTPUT_OF, RECIPES } from "../model/recipes";
 import { Resource, RESOURCES } from "../model/resources";
+import { KINKED_NODES } from "../solve/allocators";
 import { assertNoKinkedAncestors } from "../solve/breakpoints";
 
 const order = topologicalOrder();
@@ -10,7 +11,7 @@ const positionOf = (r: Resource) => order.indexOf(r);
 describe("production graph", () => {
   it("resolves in the expected order", () => {
     expect(order).toEqual([
-      "soldierT3",
+      "soldier",
       "tool",
       "stone",
       "weapon",
@@ -55,7 +56,7 @@ describe("production graph", () => {
 
   it("has exactly three roots, the exogenous demand entry points", () => {
     const roots = RESOURCES.filter((r) => consumersOf(r).length === 0);
-    expect(roots.slice().sort()).toEqual(["soldierT3", "stone", "tool"]);
+    expect(roots.slice().sort()).toEqual(["soldier", "stone", "tool"]);
   });
 
   it("is well formed", () => {
@@ -97,12 +98,12 @@ describe("recipes", () => {
   it("maps every building except the virtual soldier recipe", () => {
     const produced = Object.keys(OUTPUT_OF).sort();
     expect(produced).toEqual(BUILDINGS.slice().sort());
-    expect(RECIPES.soldierT3.building).toBeNull();
+    expect(RECIPES.soldier.building).toBeNull();
   });
 
   it("derives 4 coal per soldier from the topology rather than asserting it", () => {
     // 1 for the weaponsmith, 1 for the iron smelt, 2 for the two gold smelts.
-    const perSoldier = RECIPES.soldierT3.inputs;
+    const perSoldier = RECIPES.soldier.inputs;
     const coal =
       (perSoldier.weapon as number) * (RECIPES.weapon.inputs.coal as number) +
       (perSoldier.weapon as number) * (RECIPES.ironBar.inputs.coal as number) +
@@ -125,13 +126,17 @@ describe("closed-form inverse precondition", () => {
     expect(() => assertNoKinkedAncestors()).not.toThrow();
   });
 
-  it("keeps iron ore demand free of kinked ancestors", () => {
+  // The soldier node is kinked (gold cap) and sits upstream of iron ore, which
+  // is allowed only because the cap bends gold-bar demand alone.
+  it("keeps iron ore demand free of kinks that bend it", () => {
     expect(Array.from(demandAncestors("ironOre")).sort()).toEqual([
       "ironBar",
-      "soldierT3",
+      "soldier",
       "tool",
       "weapon",
     ]);
+    expect(KINKED_NODES.soldier?.bentInputs).toEqual(["goldBar"]);
+    expect(demandAncestors("ironOre").has("goldBar")).toBe(false);
   });
 
   it("has nothing consuming stone at all", () => {

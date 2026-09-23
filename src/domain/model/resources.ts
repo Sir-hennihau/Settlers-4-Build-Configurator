@@ -1,12 +1,12 @@
 /**
- * Every resource in the T3 soldier production chain.
+ * Every resource in the soldier production chain.
  *
  * The declaration order is load-bearing: it is the deterministic tie-break for
  * the topological sort in `graph.ts`, so reordering this array changes the
  * solve order (though not the results). `graph.test.ts` pins the resulting order.
  */
 export const RESOURCES = [
-  "soldierT3",
+  "soldier",
   "tool",
   "stone",
   "weapon",

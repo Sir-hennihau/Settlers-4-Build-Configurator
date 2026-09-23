@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A single-page calculator for the game Settlers 4: given either a building count or a target soldier rate, it sizes every building needed to sustain the tier-3 (T3) soldier production chain. Supports all 4 civilizations, variable toolsmiths, optional stone mining, and double-deposit mines. Deployed to GitHub Pages at https://sir-hennihau.github.io/Settlers-4-Build-Configurator/.
+A single-page calculator for the game Settlers 4: given a building count, it sizes every building needed to sustain the soldier production chain and reports the soldier rate it supports. Supports all 4 civilizations, variable toolsmiths, optional stone mining, double-deposit mines, and a per-map cap on gold mines (gold goes to T3 soldiers first; the rest are recruited at level 1). The UI only anchors on buildings; the domain's `solve()` still accepts a soldier-rate anchor, which the tests use. Deployed to GitHub Pages at https://sir-hennihau.github.io/Settlers-4-Build-Configurator/.
 
 ## Commands
 
@@ -38,7 +38,7 @@ src/state/           useReducer + two contexts; useSolution()
 src/components/      presentation only
 ```
 
-`src/domain` is pure and has no React import. That is where essentially all the test coverage lives (~520 tests); UI tests are deliberately thin smoke tests.
+`src/domain` is pure and has no React import. That is where essentially all the test coverage lives (~670 tests); UI tests are deliberately thin smoke tests.
 
 ### The two invariants everything rests on
 
@@ -52,7 +52,8 @@ src/components/      presentation only
 - **Do not hardcode the resolution order.** `graph.ts` derives it with Kahn's algorithm. The invariant "coal resolves after all four of its consumers" *is* `indegree(coal) === 4`; a hardcoded list would be a second source of truth that rots silently.
 - **The published rate table rounds in some cells and truncates in others** (18 vs 38 of 112). Any comparison against it needs a ±0.001 tolerance. Note `toBeCloseTo(x, 3)` means ±0.0005 and is too strict.
 - **The tick table is ordered R, W, M, T, U while the per-minute table is ordered W, R, M, T, U** — Romans and Vikings are swapped between them. "Trojans" means the Ubo (U) column throughout.
-- **Only one non-linearity exists: iron ore.** Double-deposit mines consume the same input for double output, which makes input demand proportional to *building count* rather than to output. That is confined to `doubleEfficiencyAllocator`. `assertNoKinkedAncestors()` (run at module load) guards the precondition that keeps the inverse closed-form; if it ever fires, `bisect.ts` is the fallback — it currently exists only as a test oracle.
+- **Every non-linearity is a row in `KINKED_NODES` (`allocators.ts`).** Double iron and stone mines consume the same input for double output, so input demand follows *building count* rather than output (`doubleEfficiencyAllocator`). The gold cap sits on the virtual `soldier` node and withholds gold bars beyond `maxGoldMines` mines' worth (`cappedInputAllocator`); weapon demand stays linear, which is why a soldier is *any* level and `soldiersPerMinute` equals weapons per minute. Each node declares the demand at which it kinks and which inputs it bends. `assertNoKinkedAncestors()` (run at module load) checks that no kink bends another kinked resource's demand — the precondition that keeps the inverse closed-form. The soldier node sits upstream of iron ore, which is fine only because the cap bends `goldBar` alone. If it ever fires, `bisect.ts` is the fallback — it currently exists only as a test oracle.
+- **Past the gold cap, gold-chain buildings are flat** (gold mines, gold smelters, fishers). Anchoring on one of them beyond saturation yields an `unconstrainedAnchor` warning, by design.
 - **Stone behaves differently in the two stone modes.** With a mine *count*, double stone mines are a deliberate no-op on every building count (same mines, same bread) and only raise stone output. With a stone-per-minute *target*, they cut mines and bread. This is pinned in `doubleMines.test.ts` so the no-op stays a decision.
 - **`stoneMine` and `toolSmith` are excluded from `ANCHOR_BUILDINGS`.** They are exogenous inputs with zero slope, so they cannot be inverted.
 
@@ -62,7 +63,9 @@ src/components/      presentation only
 
 ## Conventions
 
-- MUI v5 with `sx` props, no theme customization. `src/index.css` is minimal.
+- MUI v5 with `sx` props. The theme (`src/theme/theme.ts`) is built from the project palette in `src/theme/palette.ts`; take every colour from there, never a raw hex. Semantic colours: green = result/primary, rose = error, orange = warning, cyan = info.
+- **One hue per production chain** (`src/theme/chains.ts`): farming lime, bread & coal neutral, meat & iron blue, fish & gold yellow, smiths violet, stone teal. An input section and the output card for the same chain share the hue via `AccentSection`, so keep the mapping consistent when adding a building (`CHAIN_OF` is total, so a missing entry is a compile error).
+- Numeric inputs use `NumberField` (a text input with `inputMode="decimal"`), not `type="number"`: it keeps the typed text, allows an empty field, and accepts a decimal comma.
 - Components in kebab-case folders with camelCase files, named exports (`App` is the exception).
 - Building amounts are unrounded floats; `getPreviewString` rounds to 1 decimal at display time only.
 - Give every MUI `Select` an `id`/`labelId` pair and every `TextField` an explicit `id`, or `getByLabelText` in tests cannot find them.

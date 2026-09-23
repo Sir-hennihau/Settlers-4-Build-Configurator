@@ -1,5 +1,6 @@
 import { Civilization } from "../data/civilizations";
-import { Recipe } from "../model/recipes";
+import { outputRatePerMinute } from "../model/rates";
+import { inputsOf, Recipe, RECIPES } from "../model/recipes";
 import { Resource, ResourceVector } from "../model/resources";
 import { SolverInputs } from "./types";
 
@@ -96,29 +97,112 @@ export function doubleEfficiencyAllocator(
   };
 }
 
+/**
+ * Caps how much of one input a node may draw, and lets the rest of its demand
+ * go without.
+ *
+ * Used for gold: most maps have a limited number of gold deposits, so only that
+ * many mines' worth of gold bars exist. Every soldier still takes a weapon, but
+ * the gold goes to T3s first (two bars each) and soldiers the gold cannot cover
+ * are recruited at level 1. The node's own unit count is untouched; only the
+ * capped input bends, which is why its downstream is the only part that kinks.
+ */
+export function cappedInputAllocator(
+  input: Resource,
+  cap: (inputs: SolverInputs) => number
+): Allocator {
+  return (demand, ctx) => {
+    const base = linearAllocator(demand, ctx);
+    const wanted = base.inputDemand[input] ?? 0;
+    return {
+      ...base,
+      inputDemand: { ...base.inputDemand, [input]: Math.min(wanted, Math.max(0, cap(ctx.inputs))) },
+    };
+  };
+}
+
 export const DOUBLE_FACTOR = 2;
 
 /**
- * Resources whose producers can sit on a double deposit, and where the count of
- * such deposits comes from. Adding an entry here is the whole cost of
- * supporting another double-capable mine — but see `assertNoKinkedAncestors` in
- * `breakpoints.ts`, which guards the assumption that lets the inverse stay
- * closed-form.
+ * Gold bars per minute that `maxGoldMines` gold mines can feed, or `Infinity`
+ * when the map has no cap. Derived from the recipes, so a change to the gold
+ * smelter's ratio flows through.
  */
-export const DOUBLE_SOURCES: Readonly<
-  Partial<Record<Resource, (inputs: SolverInputs) => number>>
-> = {
-  ironOre: (i) => i.doubleIronMines,
-  stone: (i) => i.doubleStoneMines,
+export function goldBarCapPerMinute(inputs: SolverInputs): number {
+  if (inputs.maxGoldMines === undefined) return Infinity;
+  const smelt = RECIPES.goldBar;
+  const barsPerOre = smelt.outputQty / (smelt.inputs.goldOre as number);
+  return Math.max(0, inputs.maxGoldMines) * outputRatePerMinute("goldMine", inputs.civ) * barsPerOre;
+}
+
+/**
+ * A node whose allocator is not linear, together with what the inverse needs
+ * to know about it.
+ */
+interface KinkedNode {
+  readonly allocator: Allocator;
+  /**
+   * Demand for the node's own resource at which its allocator changes slope,
+   * or `null` if it never does for these inputs.
+   */
+  readonly kinkAt: (inputs: SolverInputs) => number | null;
+  /**
+   * The inputs whose demand the kink bends. Everything downstream of them is
+   * piecewise rather than affine — see `assertNoKinkedAncestors`.
+   */
+  readonly bentInputs: readonly Resource[];
+}
+
+/**
+ * Some deposits yield double: adding such a mine is the whole cost of
+ * supporting another double-capable resource.
+ */
+function doubleDepositNode(
+  resource: Resource,
+  availableDoubles: (inputs: SolverInputs) => number
+): KinkedNode {
+  const building = RECIPES[resource].building;
+  if (!building) throw new Error(`${resource} has no building to sit on a double deposit`);
+  return {
+    allocator: doubleEfficiencyAllocator(availableDoubles, DOUBLE_FACTOR),
+    kinkAt: (inputs) => {
+      const available = Math.max(0, availableDoubles(inputs));
+      if (available <= 0) return null;
+      return available * DOUBLE_FACTOR * outputRatePerMinute(building, inputs.civ);
+    },
+    bentInputs: inputsOf(resource),
+  };
+}
+
+function cappedInputNode(
+  resource: Resource,
+  input: Resource,
+  cap: (inputs: SolverInputs) => number
+): KinkedNode {
+  const recipe = RECIPES[resource];
+  const perUnit = (recipe.inputs[input] as number) / recipe.outputQty;
+  return {
+    allocator: cappedInputAllocator(input, cap),
+    kinkAt: (inputs) => {
+      const limit = cap(inputs);
+      return Number.isFinite(limit) ? Math.max(0, limit) / perUnit : null;
+    },
+    bentInputs: [input],
+  };
+}
+
+/**
+ * Every non-linear node in the graph. Each entry adds one potential breakpoint
+ * to the forward map, but see `assertNoKinkedAncestors` in `breakpoints.ts`,
+ * which guards the assumption that keeps the inverse closed-form.
+ */
+export const KINKED_NODES: Readonly<Partial<Record<Resource, KinkedNode>>> = {
+  soldier: cappedInputNode("soldier", "goldBar", goldBarCapPerMinute),
+  ironOre: doubleDepositNode("ironOre", (i) => i.doubleIronMines),
+  stone: doubleDepositNode("stone", (i) => i.doubleStoneMines),
 };
 
-export const ALLOCATORS: Readonly<Partial<Record<Resource, Allocator>>> = Object.fromEntries(
-  Object.entries(DOUBLE_SOURCES).map(([resource, source]) => [
-    resource,
-    doubleEfficiencyAllocator(source as (i: SolverInputs) => number, DOUBLE_FACTOR),
-  ])
-) as Partial<Record<Resource, Allocator>>;
+export const KINKED_RESOURCES: readonly Resource[] = Object.keys(KINKED_NODES) as Resource[];
 
-export const KINKED_RESOURCES: readonly Resource[] = Object.keys(DOUBLE_SOURCES) as Resource[];
-
-export const allocatorFor = (r: Resource): Allocator => ALLOCATORS[r] ?? linearAllocator;
+export const allocatorFor = (r: Resource): Allocator =>
+  KINKED_NODES[r]?.allocator ?? linearAllocator;

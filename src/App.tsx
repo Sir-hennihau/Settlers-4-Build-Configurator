@@ -11,8 +11,11 @@ function App() {
       <Headline />
       <CivilizationSelector />
       <BuildingInput />
-      <BuildingOutput />
-      <SoldiersPerMinuteInfo />
+      {/* The answer first, then the build that sustains it. */}
+      <Container disableGutters>
+        <SoldiersPerMinuteInfo />
+        <BuildingOutput />
+      </Container>
     </Container>
   );
 }
