@@ -101,11 +101,13 @@ test("colour mode defaults to system and can be switched", () => {
   expect(system).toHaveAttribute("aria-pressed", "false");
 });
 
-test("colours food, mine and smelter rows differently", () => {
+test("colours food, mine and metal-works rows differently", () => {
   renderApp();
   const colorOf = (label: string) => getComputedStyle(screen.getByText(label)).color;
   expect(colorOf("Waterworks")).toBe(colorOf("Fisher Huts"));
   expect(colorOf("Coal Mines")).toBe(colorOf("Gold Mines"));
   expect(colorOf("Iron Smelting Works")).toBe(colorOf("Gold Smelting Works"));
+  expect(colorOf("Weaponsmith's Works")).toBe(colorOf("Iron Smelting Works"));
+  expect(colorOf("Toolsmith's Works")).toBe(colorOf("Iron Smelting Works"));
   expect(new Set([colorOf("Waterworks"), colorOf("Coal Mines"), colorOf("Iron Smelting Works")]).size).toBe(3);
 });

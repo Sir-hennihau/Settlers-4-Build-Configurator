@@ -64,7 +64,7 @@ src/components/      presentation only
 ## Conventions
 
 - MUI v5 with `sx` props and the default theme; the only theme option is `palette.mode`. `ColorModeProvider` (`src/theme/`) picks light or dark, following the OS unless the user chooses in the System / Light / Dark toggle (saved in localStorage). `src/index.css` is minimal.
-- Colours come from the project palette in `src/theme/palette.ts`, never a raw hex. The only colour in the UI is the building list (`buildingColors.ts`): food green, mines blue, smelters orange, smiths default. Shade 600 in light mode and 400 in dark mode keep text contrast above WCAG AA. `BUILDING_HUES` is total, so a new building needs an entry. The user rejected a card-based design — keep the layout plain.
+- Colours come from the project palette in `src/theme/palette.ts`, never a raw hex. The only colour in the UI is the building list (`buildingColors.ts`): food green, mines blue, smelters and smiths orange. Shade 600 in light mode and 400 in dark mode keep text contrast above WCAG AA. `BUILDING_HUES` is total, so a new building needs an entry. The user rejected a card-based design — keep the layout plain.
 - Numeric inputs use `NumberField` (a text input with `inputMode="decimal"`), not `type="number"`: it keeps the typed text, allows an empty field, and accepts a decimal comma.
 - Components in kebab-case folders with camelCase files, named exports (`App` is the exception).
 - Building amounts are unrounded floats; `getPreviewString` rounds to 1 decimal at display time only.
