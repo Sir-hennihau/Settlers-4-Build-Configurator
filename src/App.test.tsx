@@ -1,12 +1,15 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "./App";
 import { InputsProvider } from "./state/InputsContext";
+import { ColorModeProvider } from "./theme/ColorModeProvider";
 
 const renderApp = () =>
   render(
-    <InputsProvider>
-      <App />
-    </InputsProvider>
+    <ColorModeProvider>
+      <InputsProvider>
+        <App />
+      </InputsProvider>
+    </ColorModeProvider>
   );
 
 /** Thin smoke tests only — the arithmetic is covered in src/domain/__tests__. */
@@ -86,4 +89,23 @@ test("an amount field can be cleared and accepts a decimal comma", () => {
 
   fireEvent.change(amount, { target: { value: "2,5x" } });
   expect(amount.value).toBe("2,5");
+});
+
+test("colour mode defaults to system and can be switched", () => {
+  renderApp();
+  const system = screen.getByRole("button", { name: "System" });
+  expect(system).toHaveAttribute("aria-pressed", "true");
+
+  fireEvent.click(screen.getByRole("button", { name: "Dark" }));
+  expect(screen.getByRole("button", { name: "Dark" })).toHaveAttribute("aria-pressed", "true");
+  expect(system).toHaveAttribute("aria-pressed", "false");
+});
+
+test("colours food, mine and smelter rows differently", () => {
+  renderApp();
+  const colorOf = (label: string) => getComputedStyle(screen.getByText(label)).color;
+  expect(colorOf("Waterworks")).toBe(colorOf("Fisher Huts"));
+  expect(colorOf("Coal Mines")).toBe(colorOf("Gold Mines"));
+  expect(colorOf("Iron Smelting Works")).toBe(colorOf("Gold Smelting Works"));
+  expect(new Set([colorOf("Waterworks"), colorOf("Coal Mines"), colorOf("Iron Smelting Works")]).size).toBe(3);
 });

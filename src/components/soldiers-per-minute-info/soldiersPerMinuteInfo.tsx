@@ -1,60 +1,34 @@
-import { Alert, Box, Stack, Typography } from "@mui/material";
+import { Alert, Divider, Grid, Stack } from "@mui/material";
 import { BUILDING_DISPLAY_NAMES } from "../../domain/model/buildings";
 import { getPreviewString } from "../../helpers/getPreviewString";
 import { useInputs } from "../../state/InputsContext";
 import { useSolution } from "../../state/useSolution";
-import { accent } from "../../theme/chains";
-import { Hue } from "../../theme/palette";
 
-/** A label over a value; the value is always the label's last sibling. */
-const Stat = ({
+const Row = ({
   label,
   value,
-  hue,
-  large = false,
+  bold = false,
 }: {
   label: string;
-  value: number | string;
-  hue: Hue;
-  large?: boolean;
-}) => {
-  const colors = accent(hue);
-  return (
-    <Box
-      sx={{
-        backgroundColor: large ? "transparent" : colors.tint,
-        border: large ? 0 : 1,
-        borderColor: colors.border,
-        borderRadius: 2,
-        paddingX: large ? 0 : 1.5,
-        paddingY: large ? 0 : 0.75,
-      }}
-    >
-      <Typography variant="body2" sx={{ color: colors.text, fontWeight: 600 }}>
-        {label}
-      </Typography>
-      <Typography
-        sx={{
-          color: colors.strong,
-          fontWeight: 800,
-          fontSize: large ? "2.5rem" : "1.5rem",
-          lineHeight: 1.1,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-};
+  value: string;
+  bold?: boolean;
+}) => (
+  <Grid container spacing={2} sx={{ marginTop: 1 }}>
+    <Grid item xs={8} sx={{ fontWeight: bold ? "bold" : undefined }}>
+      {label}
+    </Grid>
+    <Grid item xs={4} sx={{ textAlign: "right", fontWeight: bold ? "bold" : undefined }}>
+      {value}
+    </Grid>
+  </Grid>
+);
 
 /**
- * The headline result, plus anything the solver wants to flag. Green is
- * reserved for the soldier rate; within the gold-cap split, level 3 takes the
- * gold chain's yellow and level 1 stays neutral, since it needs no gold.
+ * The summary line, plus anything the solver wants to flag.
  *
- * The bread split comes straight out of the solver's per-consumer
- * contributions, so it cannot drift from the numbers below it.
+ * The bread split used to be recomputed here from a second copy of the stone
+ * chain. It now comes straight out of the solver's per-consumer contributions,
+ * so it cannot drift from the numbers above it.
  */
 export const SoldiersPerMinuteInfo = () => {
   const solution = useSolution();
@@ -69,103 +43,74 @@ export const SoldiersPerMinuteInfo = () => {
   const coalShare = totalBread > 0 ? (fromCoal / totalBread) * 100 : 0;
 
   const stoneOutput = solution.buildings.stoneMine.outputPerMinute;
-  const green = accent("green");
 
   return (
-    <Stack sx={{ gap: 1.5, marginTop: 2 }}>
-      <Box
-        component="section"
-        aria-label="Result"
-        sx={{
-          backgroundColor: green.tint,
-          border: 2,
-          borderColor: solution.isSufficient ? green.bar : "error.main",
-          borderRadius: 2,
-          padding: 2,
-        }}
-      >
-        <Stack
-          sx={{
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "stretch", sm: "center" },
-            gap: 1.5,
-          }}
-        >
-          <Box sx={{ flex: 1 }}>
-            <Stat
-              large
-              hue="green"
-              label={hasGoldCap ? "Soldiers per minute" : "T3 Soldiers per minute"}
-              value={getPreviewString(solution.soldiersPerMinute)}
-            />
-          </Box>
-          {hasGoldCap && (
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, flex: 1 }}>
-              <Stat
-                hue="yellow"
-                label="Level 3 soldiers"
-                value={getPreviewString(solution.soldierLevels.level3)}
-              />
-              <Stat
-                hue="neutral"
-                label="Level 1 soldiers"
-                value={getPreviewString(solution.soldierLevels.level1)}
-              />
-            </Box>
-          )}
-        </Stack>
+    <>
+      <Divider sx={{ marginTop: 2 }} />
 
-        <Stack
-          sx={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            columnGap: 3,
-            rowGap: 0.5,
-            marginTop: 1.5,
-            color: "text.secondary",
-          }}
-        >
-          <Typography variant="body2">
-            Bread: {stoneShare.toFixed(0)}% stone / {coalShare.toFixed(0)}% coal
-          </Typography>
-          {stoneOutput > 0 && (
-            <Typography variant="body2">
-              Stone per minute: {getPreviewString(stoneOutput)}
-            </Typography>
-          )}
-        </Stack>
-      </Box>
+      {hasGoldCap ? (
+        <>
+          <Row
+            label="Soldiers per minute"
+            value={String(getPreviewString(solution.soldiersPerMinute))}
+            bold
+          />
+          <Row
+            label="Level 3 soldiers"
+            value={String(getPreviewString(solution.soldierLevels.level3))}
+          />
+          <Row
+            label="Level 1 soldiers"
+            value={String(getPreviewString(solution.soldierLevels.level1))}
+          />
+        </>
+      ) : (
+        <Row
+          label="T3 Soldiers per minute"
+          value={String(getPreviewString(solution.soldiersPerMinute))}
+          bold
+        />
+      )}
+      <Row
+        label="Bread usage ratio"
+        value={`${stoneShare.toFixed(0)}% stone / ${coalShare.toFixed(0)}% coal`}
+      />
+      {stoneOutput > 0 && (
+        <Row label="Stone per minute" value={String(getPreviewString(stoneOutput))} />
+      )}
 
-      {solution.warnings.map((warning, index) => {
-        if (warning.kind === "insufficientForOverhead") {
+      <Stack sx={{ gap: 1, marginTop: 2 }}>
+        {solution.warnings.map((warning, index) => {
+          if (warning.kind === "insufficientForOverhead") {
+            return (
+              <Alert severity="error" key={index}>
+                {getPreviewString(warning.required)}{" "}
+                {BUILDING_DISPLAY_NAMES[warning.building]} are needed just to feed the
+                toolsmiths and stone mines, so {getPreviewString(warning.entered)}{" "}
+                supports no soldiers at all.
+              </Alert>
+            );
+          }
+          if (warning.kind === "idleDoubleMines") {
+            // Idle doubles consume nothing, so this is information, not an error.
+            return (
+              <Alert severity="info" key={index}>
+                {getPreviewString(warning.idle)} of your double{" "}
+                {BUILDING_DISPLAY_NAMES[warning.building].toLowerCase()} are not needed
+                at this target — {getPreviewString(warning.spareOutputPerMinute)} spare
+                output per minute.
+              </Alert>
+            );
+          }
           return (
-            <Alert severity="error" key={index}>
-              {getPreviewString(warning.required)}{" "}
-              {BUILDING_DISPLAY_NAMES[warning.building]} are needed just to feed the
-              toolsmiths and stone mines, so {getPreviewString(warning.entered)}{" "}
-              supports no soldiers at all.
+            <Alert severity="warning" key={index}>
+              {BUILDING_DISPLAY_NAMES[warning.building]} do not constrain the soldier
+              target{hasGoldCap ? " beyond the gold mine cap" : ""}, so no rate can be
+              derived from them. Anchor on another building.
             </Alert>
           );
-        }
-        if (warning.kind === "idleDoubleMines") {
-          // Idle doubles consume nothing, so this is information, not an error.
-          return (
-            <Alert severity="info" key={index}>
-              {getPreviewString(warning.idle)} of your double{" "}
-              {BUILDING_DISPLAY_NAMES[warning.building].toLowerCase()} are not needed
-              at this target — {getPreviewString(warning.spareOutputPerMinute)} spare
-              output per minute.
-            </Alert>
-          );
-        }
-        return (
-          <Alert severity="warning" key={index}>
-            {BUILDING_DISPLAY_NAMES[warning.building]} do not constrain the soldier
-            target{hasGoldCap ? " beyond the gold mine cap" : ""}, so no rate can be
-            derived from them. Anchor on another building.
-          </Alert>
-        );
-      })}
-    </Stack>
+        })}
+      </Stack>
+    </>
   );
 };

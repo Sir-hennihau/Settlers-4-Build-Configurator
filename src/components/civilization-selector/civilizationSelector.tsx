@@ -28,7 +28,7 @@ export const CivilizationSelector = () => {
   };
 
   return (
-    <Container disableGutters sx={{ marginBottom: 1.5 }}>
+    <Container sx={{ marginBottom: 2 }}>
       <FormControl fullWidth>
         <InputLabel id="civilization-label">Civilization</InputLabel>
         <Select

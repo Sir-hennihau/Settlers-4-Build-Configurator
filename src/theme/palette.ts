@@ -1,7 +1,4 @@
-/**
- * The project colour palette. Every colour in the UI comes from here, through
- * the MUI theme (`theme.ts`) or a chain accent (`chains.ts`).
- */
+/** The project colour palette. Every custom colour in the UI comes from here. */
 export const PALETTE = {
   lime: {
     50: "#f7faee",
